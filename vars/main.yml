@@ -1,0 +1,27 @@
+---
+
+esb_service_name: "{{ InstallESB_esb_user_name }}-service"
+
+Log4j:
+  - { regexp: "^log4j.appender.out=.*$", line: "log4j.appender.out=uk.org.simonsite.log4j.appender.TimeAndSizeRollingAppender" }
+  - { regexp: "^log4j.appender.out.layout=.*$", line: "log4j.appender.out.layout=org.apache.log4j.PatternLayout" }
+  - { regexp: "^log4j.appender.out.layout.(.)onversionPattern.*$", line: "log4j.appender.out.layout.ConversionPattern=%d{ISO8601} | %-5.5p | %-16.16t | %-32.32c{1} | %X{bundle.id} - %X{bundle.name} - %X{bundle.version} | %m%n" }
+  - { regexp: "^log4j.appender.out.file.*$", line: "log4j.appender.out.file=${karaf.data}/log/servicemix.log" }
+  - { regexp: "^log4j.appender.out.append.*$", line: "log4j.appender.out.append=true" }
+  - { regexp: "^log4j.appender.out.(.)atePattern.*$", line: "log4j.appender.out.DatePattern=.yyyy-MM-dd" }
+  - { regexp: "^log4j.appender.out.(.)ateRollEnforced.*$", line: "log4j.appender.out.DateRollEnforced=true" }
+  - { regexp: "^log4j.appender.out.(.)ompressionAlgorithm.*$", line: "log4j.appender.out.CompressionAlgorithm=GZ" }
+  - { regexp: "^log4j.appender.out.(.)axRollFileCount.*$", line: "log4j.appender.out.MaxRollFileCount=1000" }
+  - { regexp: "^log4j.appender.out.(.)axFileSize.*$", line: "log4j.appender.out.MaxFileSize=9MB" }
+  - { regexp: "log4j.appender.out.(.)axBackupIndex=.*$", line: "#log4j.appender.out.MaxBackupIndex=" }
+
+Wrapper_conf:
+  - { regexp: "^#?set.default.JAVA_HOME.*$", line: "set.default.JAVA_HOME={{ InstallESB_java_home }}" }
+  - { regexp: "^#?wrapper.java.initmemory.*$", line: "wrapper.java.initmemory=1024" }
+  - { regexp: "^#?wrapper.java.maxmemory.*$", line: "wrapper.java.maxmemory=1024" }
+
+Wrapper_conf_:
+  - { regexp: "^#?wrapper.java.additional.7.*$", line: "wrapper.java.additional.8=-Djava.ext.dirs=%JAVA_HOME%/jre/lib/ext:%JAVA_HOME%/lib/ext:%KARAF_HOME%/lib/ext" }
+  - { regexp: "^#?wrapper.java.additional.8.*$", line: "wrapper.java.additional.9=-Dfile.encoding=UTF-8" }
+  - { regexp: "^#?wrapper.java.additional.9.*$", line: "wrapper.java.additional.10=-XX:MaxPermSize=512m" }
+  - { regexp: "^#?wrapper.java.additional.10.*$", line: "wrapper.java.additional.11=-Djava.io.tmpdir=%KARAF_DATA%/tmp" }
