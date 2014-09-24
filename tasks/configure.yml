@@ -21,3 +21,15 @@
   notify: Wrapper configuration changed
   tags:
     - config
+
+- name: Configure custom.properties
+  lineinfile:
+    dest: "{{karaf_home }}/etc/custom.properties"
+    state: present
+    regexp: "^#?{{ item.prop }}.*$"
+    line: "{{ item.prop }} = {{ item.value }}"
+  with_items: karaf_custom_properties
+  when: item.value is defined and item.value != '_UNDEFINED_'
+  notify: Karaf configuration changed
+  tags:
+    - config

@@ -8,8 +8,8 @@ karaf_user_name: "karaf"
 karaf_service_name: "karaf"
 karaf_admin_user: "karaf"
 karaf_admin_pass: "karaf"
-karaf_contaiter_subdirectory: "" # "/container" for Talend
-karaf_home: "{{ karaf_install_dir }}{{ karaf_contaiter_subdirectory }}"
+#karaf_container_subdirectory: "" # "container" for Talend
+karaf_home: "{{ karaf_install_dir }}{{ '/' ~ karaf_container_subdirectory if karaf_container_subdirectory is defined else '' }}"
 #TODO another default for Debian based repos
 karaf_java_home: "/usr/java/default" # Use when installing jdk
 
@@ -20,5 +20,7 @@ karaf_java_max_perm_memory: "128"
 karaf_use_extended_logging: true
 karaf_log_file_size: "9MB"
 karaf_log_file_roll_count: 100
+
+#karaf_osgi_framework: "felix" # equinox
 
 karaf_downoal_url: "http://www.eu.apache.org/dist/karaf/{{ karaf_distr_version }}/{{ karaf_distr_name }}.{{ karaf_archive_type }}"

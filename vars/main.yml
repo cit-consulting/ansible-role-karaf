@@ -25,3 +25,7 @@ karaf_wrapper_conf2:
   - { regexp: "^#?wrapper.java.additional.8.*$", line: "wrapper.java.additional.9=-Dfile.encoding=UTF-8" }
   - { regexp: "^#?wrapper.java.additional.9.*$", line: "wrapper.java.additional.10=-XX:MaxPermSize={{ karaf_java_max_perm_memory }}m" }
   - { regexp: "^#?wrapper.java.additional.10.*$", line: "wrapper.java.additional.11=-Djava.io.tmpdir=%KARAF_DATA%/tmp" }
+
+
+karaf_custom_properties:
+  - { prop: "karaf.framework", value: "{{ karaf_osgi_framework|default('_UNDEFINED_') }}" }

@@ -3,3 +3,7 @@
 - name: Wrapper configuration changed
   service: name={{ karaf_service_link_name }} enabled=yes state=restarted
   sudo: yes
+
+- name: Karaf configuration changed
+  service: name={{ karaf_service_link_name }} enabled=yes state=restarted
+  sudo: yes
