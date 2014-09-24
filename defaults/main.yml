@@ -1,9 +1,24 @@
 ---
 
-InstallESB_esb_distr_name: "TESB_SE-V5.5.1" #"TESB_SE-V5.5.1" #"apache-karaf-3.0.1" #
-InstallESB_esb_dir: "/opt/{{ InstallESB_esb_distr_name }}"
-InstallESB_archive_type: "zip" # Set zip or "tar.gz"
-InstallESB_esb_user_name: "esb_user"
-InstallESB_esb_type: "talend"  # "karaf" , "talend"
-InstallESB_esb_type_path: "{{ InstallESB_esb_dir }}/container" # Set path ESB (TESB - {{ InstallESB_esb_dir }}/container, KARAF - {{ InstallESB_esb_dir }})
-InstallESB_java_home: "/usr/java/jdk1.7.0_67/" # Use when installing jdk
+# karaf_distr_version: "2.3.8"
+karaf_distr_name: "apache-karaf-{{ karaf_distr_version }}" #"TESB_SE-V5.5.1" #"apache-karaf-3.0.1" #
+karaf_install_dir: "/opt/{{ karaf_distr_name }}"
+karaf_archive_type: "tar.gz" # "zip" or "tar.gz"
+karaf_user_name: "karaf"
+karaf_service_name: "karaf"
+karaf_admin_user: "karaf"
+karaf_admin_pass: "karaf"
+karaf_contaiter_subdirectory: "" # "/container" for Talend
+karaf_home: "{{ karaf_install_dir }}{{ karaf_contaiter_subdirectory }}"
+#TODO another default for Debian based repos
+karaf_java_home: "/usr/java/default" # Use when installing jdk
+
+karaf_java_initial_memory: "512"
+karaf_java_max_memory: "512"
+karaf_java_max_perm_memory: "128"
+
+karaf_use_extended_logging: true
+karaf_log_file_size: "9MB"
+karaf_log_file_roll_count: 100
+
+karaf_downoal_url: "http://www.eu.apache.org/dist/karaf/{{ karaf_distr_version }}/{{ karaf_distr_name }}.{{ karaf_archive_type }}"
