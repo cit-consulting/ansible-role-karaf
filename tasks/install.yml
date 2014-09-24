@@ -12,7 +12,9 @@
     - install
 
 - name: Copy ESB {{ karaf_distr_name }}
-  copy: src=tmp/{{ karaf_distr_name }}.{{ karaf_archive_type }} dest=/opt/
+  copy:
+    src: "tmp/{{ karaf_distr_name }}.{{ karaf_archive_type }}"
+    dest: "/opt/"
   tags:
     - install
 
