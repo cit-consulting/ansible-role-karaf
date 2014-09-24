@@ -4,10 +4,24 @@
 karaf_distr_name: "apache-karaf-{{ karaf_distr_version }}" #"TESB_SE-V5.5.1" #"apache-karaf-3.0.1" #
 karaf_install_dir: "/opt/{{ karaf_distr_name }}"
 karaf_archive_type: "tar.gz" # "zip" or "tar.gz"
-karaf_user_name: "karaf"
+karaf_os_user_name: "karaf"
 karaf_service_name: "karaf"
+
 karaf_admin_user: "karaf"
 karaf_admin_pass: "karaf"
+
+# system.properties
+karaf_instance_name: "root"
+# org.apache.karaf.shell.cfg
+karaf_ssh_host: "0.0.0.0"
+karaf_ssh_port: "8101"
+# org.apache.karaf.management.cfg
+karaf_rmi_registry_port: "1099"
+karaf_rmi_server_host: "0.0.0.0"
+karaf_rmi_server_port: "44444"
+karaf_rmi_server_host: "0.0.0.0"
+karaf_rmi_jmx_realm: "karaf"
+
 #karaf_container_subdirectory: "" # "container" for Talend
 karaf_home: "{{ karaf_install_dir }}{{ '/' ~ karaf_container_subdirectory if karaf_container_subdirectory is defined else '' }}"
 #TODO another default for Debian based repos
@@ -24,3 +38,11 @@ karaf_log_file_roll_count: 100
 #karaf_osgi_framework: "felix" # equinox
 
 karaf_downoal_url: "http://www.eu.apache.org/dist/karaf/{{ karaf_distr_version }}/{{ karaf_distr_name }}.{{ karaf_archive_type }}"
+
+karaf_service_link_name: "{{ karaf_service_name }}-service"
+
+karaf_custom_configuration: []
+#  - file: "org.apache.karaf.management.cfg"
+#    params:
+#      - { prop: "rmiServerHost", value: "{{ karaf_rmi_server_host }}" }
+#      - { prop: "jmxRealm", value: "{{ karaf_rmi_jmx_realm }}" }

@@ -1,0 +1,29 @@
+---
+
+- name: Apply base configuration values
+  lineinfile:
+    dest: "{{ karaf_home }}/etc/{{ item.0.file }}"
+    state: present
+    regexp: "^#?{{ item.1.prop }}.*$"
+    line: "{{ item.1.prop }} = {{ item.1.value }}"
+  with_subelements:
+    - karaf_base_configuration
+    - params
+  when: item.1.value is defined and item.1.value != '_UNDEFINED_'
+  notify: Karaf configuration changed
+  tags:
+    - config
+
+- name: Apply custom configuration values
+  lineinfile:
+    dest: "{{ karaf_home }}/etc/{{ item.0.file }}"
+    state: present
+    regexp: "^#?{{ item.1.prop }}.*$"
+    line: "{{ item.1.prop }} = {{ item.1.value }}"
+  with_subelements:
+    - karaf_custom_configuration
+    - params
+  when: item.1.value is defined and item.1.value != '_UNDEFINED_'
+  notify: Karaf configuration changed
+  tags:
+    - config

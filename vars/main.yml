@@ -1,7 +1,5 @@
 ---
 
-karaf_service_link_name: "{{ karaf_service_name }}-service"
-
 karaf_logging_properties:
   - { regexp: "^log4j.appender.out=.*$", line: "log4j.appender.out=uk.org.simonsite.log4j.appender.TimeAndSizeRollingAppender" }
   - { regexp: "^log4j.appender.out.layout=.*$", line: "log4j.appender.out.layout=org.apache.log4j.PatternLayout" }
@@ -26,6 +24,21 @@ karaf_wrapper_conf2:
   - { regexp: "^#?wrapper.java.additional.9.*$", line: "wrapper.java.additional.10=-XX:MaxPermSize={{ karaf_java_max_perm_memory }}m" }
   - { regexp: "^#?wrapper.java.additional.10.*$", line: "wrapper.java.additional.11=-Djava.io.tmpdir=%KARAF_DATA%/tmp" }
 
-
-karaf_custom_properties:
-  - { prop: "karaf.framework", value: "{{ karaf_osgi_framework|default('_UNDEFINED_') }}" }
+karaf_base_configuration:
+  - file: "custom.properties"
+    params:
+      - { prop: "karaf.framework", value: "{{ karaf_osgi_framework|default('_UNDEFINED_') }}" }
+  - file: "system.properties"
+    params:
+      - { prop: "karaf.name", value: "{{ karaf_instance_name }}" }
+  - file: "org.apache.karaf.shell.cfg"
+    params:
+      - { prop: "sshPort", value: "{{ karaf_ssh_port }}" }
+      - { prop: "sshHost", value: "{{ karaf_ssh_host }}" }
+  - file: "org.apache.karaf.management.cfg"
+    params:
+      - { prop: "rmiRegistryPort", value: "{{ karaf_rmi_registry_port }}" }
+      - { prop: "rmiRegistryHost", value: "{{ karaf_rmi_server_host }}" }
+      - { prop: "rmiServerPort", value: "{{ karaf_rmi_server_port }}" }
+      - { prop: "rmiServerHost", value: "{{ karaf_rmi_server_host }}" }
+      - { prop: "jmxRealm", value: "{{ karaf_rmi_jmx_realm }}" }
