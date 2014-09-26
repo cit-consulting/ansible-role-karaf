@@ -6,8 +6,9 @@
 
 - name: Dowload Karaf distribution
   local_action:  get_url url={{ karaf_downoal_url }} dest=tmp/{{ karaf_distr_name }}.{{ karaf_archive_type }}
-  sudo: no
   when: karaf_downoal_url is defined
+  run_once: true
+  sudo: no
   tags:
     - install
 
