@@ -147,8 +147,8 @@
 - name: "Generate service script"
   shell: "{{ item }}"
   with_items:
-    - '{{ karaf_home }}/bin/client -u {{ karaf_admin_user }} -p {{ karaf_admin_pass }} -h 127.0.0.1 -a {{ karaf_ssh_port }} "features:install wrapper"'
-    - '{{ karaf_home }}/bin/client -u {{ karaf_admin_user }} -p {{ karaf_admin_pass }} -h 127.0.0.1 -a {{ karaf_ssh_port }} "wrapper:install -n {{ karaf_service_name }} -d {{ karaf_service_name }} -D "{{ karaf_service_name }}""'
+    - '{{ karaf_home }}/bin/client -u {{ karaf_admin_user }} -h 127.0.0.1 -a {{ karaf_ssh_port }} "feature:install wrapper"'
+    - '{{ karaf_home }}/bin/client -u {{ karaf_admin_user }} -h 127.0.0.1 -a {{ karaf_ssh_port }} "wrapper:install -n {{ karaf_service_name }} -d {{ karaf_service_name }} -D "{{ karaf_service_name }}""'
   when: not karaf_wrapper_conf_path_validation.stat.exists
   sudo: yes
   sudo_user: "{{ karaf_os_user_name }}"
