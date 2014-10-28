@@ -11,13 +11,24 @@
   tags:
     - config
 
-- name: Configure wrapper 2
+- name: Configure wrapper default JVM options
   lineinfile:
     dest: "{{karaf_home }}/etc/{{ karaf_service_name }}-wrapper.conf"
     state: present
-    insertafter: "{{ item.regexp }}"
-    line: "{{ item.line }}"
-  with_items: karaf_wrapper_conf2
+    insertafter: "^#?wrapper.java.additional.{{ karaf_wrapper_conf_last_num|int + item.0 }}.*$"
+    line: "wrapper.java.additional.{{ karaf_wrapper_conf_last_num|int + item.0 + 1 }}={{ item.1 }}"
+  with_indexed_items: karaf_wrapper_default_jvm_options
+  notify: Wrapper configuration changed
+  tags:
+    - config
+
+- name: Configure wrapper additional JVM options
+  lineinfile:
+    dest: "{{karaf_home }}/etc/{{ karaf_service_name }}-wrapper.conf"
+    state: present
+    insertafter: "^#?wrapper.java.additional.{{ karaf_wrapper_conf_last_num|int + item.0 + 3}}.*$"
+    line: "wrapper.java.additional.{{ karaf_wrapper_conf_last_num|int + item.0 + 4 }}={{ item.1 }}"
+  with_indexed_items: karaf_wrapper_additional_jvm_options
   notify: Wrapper configuration changed
   tags:
     - config
