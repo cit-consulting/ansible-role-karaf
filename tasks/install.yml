@@ -132,9 +132,11 @@
 #  tags:
 #   - install
 - name: "First start Karaf"
-  shell: 'su - {{ karaf_os_user_name }} -c {{karaf_home }}/bin/start'
-  when: not karaf_wrapper_conf_path_validation.stat.exists
   sudo: yes
+  shell: 'su {{ karaf_os_user_name }} -c {{karaf_home }}/bin/start'
+  environment:
+    JAVA_HOME: "{{ karaf_java_home }}"
+  when: not karaf_wrapper_conf_path_validation.stat.exists
   tags:
    - install
 
@@ -145,15 +147,15 @@
     - install
 
 - name: "Generate service script"
+  sudo: yes
+  sudo_user: "{{ karaf_os_user_name }}"
   shell: "{{ item }}"
   with_items:
     - '{{ karaf_home }}/bin/client -u {{ karaf_admin_user }} {{ "-p " ~ karaf_admin_pass if karaf_distr_version|version_compare("3.0.0", "<") else "" }} -h 127.0.0.1 -a {{ karaf_ssh_port }} "{{ karaf_command_prefix_feature }}:install wrapper"'
     - '{{ karaf_home }}/bin/client -u {{ karaf_admin_user }} {{ "-p " ~ karaf_admin_pass if karaf_distr_version|version_compare("3.0.0", "<") else "" }} -h 127.0.0.1 -a {{ karaf_ssh_port }} "wrapper:install -n {{ karaf_service_name }} -d {{ karaf_service_name }} -D "{{ karaf_service_name }}""'
-  when: not karaf_wrapper_conf_path_validation.stat.exists
-  sudo: yes
-  sudo_user: "{{ karaf_os_user_name }}"
   environment:
     JAVA_HOME: "{{ karaf_java_home }}"
+  when: not karaf_wrapper_conf_path_validation.stat.exists
   tags:
    - install
 

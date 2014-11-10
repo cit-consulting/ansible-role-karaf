@@ -18,7 +18,7 @@ karaf_wrapper_conf1:
   - { regexp: "^#?wrapper.java.initmemory.*$", line: "wrapper.java.initmemory={{ karaf_java_initial_memory }}" }
   - { regexp: "^#?wrapper.java.maxmemory.*$", line: "wrapper.java.maxmemory={{ karaf_java_max_memory }}" }
 
-karaf_wrapper_conf_last_num: '{{ 10 if karaf_distr_version|version_compare("3.0.0", ">=") else 8 }}'
+#karaf_wrapper_conf_last_num: '{{ 10 if karaf_distr_version|version_compare("3.0.0", ">=") else 8 }}'
 
 karaf_wrapper_default_jvm_options:
   - "-Dfile.encoding=UTF-8"
@@ -44,6 +44,6 @@ karaf_base_configuration:
       - { prop: "rmiServerHost", value: "{{ karaf_rmi_server_host }}" }
       - { prop: "jmxRealm", value: "{{ karaf_rmi_jmx_realm }}" }
 
-karaf_extended_loggig_module: '{{ "mvn\:ru.citc.karaf/karaf-extended-logging/1.0.0 = 7" if karaf_distr_version|version_compare("3.0.0", ">=") else "ru/citc/karaf/karaf-extended-logging/1.0.0/karaf-extended-logging-1.0.0.jar=7" }}'
+#karaf_extended_loggig_module: '{{ "mvn\:ru.citc.karaf/karaf-extended-logging/1.0.0 = 7" if karaf_distr_version|version_compare("3.0.0", ">=") else "ru/citc/karaf/karaf-extended-logging/1.0.0/karaf-extended-logging-1.0.0.jar=7" }}'
 
-karaf_command_prefix_feature: '{{ "feature" if karaf_distr_version|version_compare("3.0.0", ">=") else "features" }}'
+#karaf_command_prefix_feature: '{{ "feature" if karaf_distr_version|version_compare("3.0.0", ">=") else "features" }}'

@@ -36,8 +36,15 @@ karaf_log_file_size: "9MB"
 karaf_log_file_roll_count: 100
 
 #karaf_osgi_framework: "felix" # equinox
+karaf_extended_loggig_module: '{{ "mvn\:ru.citc.karaf/karaf-extended-logging/1.0.0 = 7" if karaf_distr_version|version_compare("3.0.0", ">=") else "ru/citc/karaf/karaf-extended-logging/1.0.0/karaf-extended-logging-1.0.0.jar=7" }}'
+
+
+karaf_wrapper_conf_last_num: '{{ 10 if karaf_distr_version|version_compare("3.0.0", ">=") else 8 }}'
+
+karaf_command_prefix_feature: '{{ "feature" if karaf_distr_version|version_compare("3.0.0", ">=") else "features" }}'
 
 karaf_downoal_url: "http://www.eu.apache.org/dist/karaf/{{ karaf_distr_version }}/{{ karaf_distr_name }}.{{ karaf_archive_type }}"
+
 
 karaf_service_link_name: "{{ karaf_service_name }}-service"
 
