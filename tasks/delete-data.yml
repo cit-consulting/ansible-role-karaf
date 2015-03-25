@@ -1,0 +1,32 @@
+---
+
+- name: "Delete Data: Stop Karaf service"
+  service:
+    name: '{{ karaf_service_link_name }}'
+    state: stopped
+  ignore_errors: True
+  register: karaf_stop_service
+  sudo: yes
+  tags:
+    - delete_data
+
+- name: "Delete Data: Create directory data-backup"
+  file:
+    path: '{{ karaf_home }}/data-backup'
+    state: directory
+  tags:
+    - delete_data
+
+- name: "Delete Data: move 'data' directory"
+  shell: 'mv -f {{ karaf_home }}/data {{ karaf_home }}/data-backup/$(date +%F_%T)'
+  sudo: yes
+  tags:
+    - delete_data
+
+- name: "Delete Data: Start Karaf service"
+  service:
+    name: '{{ karaf_service_link_name }}'
+    state: started
+  sudo: yes
+  tags:
+    - delete_data

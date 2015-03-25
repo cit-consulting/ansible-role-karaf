@@ -1,0 +1,78 @@
+---
+
+- name: "Update feature: Wait for Karaf to start"
+  wait_for: "port={{ karaf_ssh_port }} timeout=30"
+  tags:
+    - features
+
+- name: "Add features configs"
+  copy:
+    src: 'features-configs/{{ item.1 }}'
+    dest: '{{ karaf_home }}/etc'
+    owner: "{{ karaf_os_user_name }}"
+    mode: 644
+    backup: yes
+  with_subelements:
+    - karaf_features
+    - conf_files
+  sudo: yes
+  tags:
+    - features
+
+- name: "Add features url"
+  shell: '{{ karaf_connect_to_local_Karaf_instance }} "{{ karaf_command_prefix_feature }}:{{ karaf_command_prefix_refresh }} {{ item.url }}/xml/features"'
+  changed_when: false
+  sudo: yes
+  sudo_user: "{{ karaf_os_user_name }}"
+  environment:
+    JAVA_HOME: "{{ karaf_java_home }}"
+  with_items: karaf_features
+  tags:
+    - features
+
+- name: "Check features install"
+  shell: '{{ karaf_connect_to_local_Karaf_instance }} "{{ karaf_command_prefix_feature }}:list -i --no-format | grep {{ item.name }}\\\s+{{ item.version }}" >>/tmp/feature.txt'
+  changed_when: false
+  sudo: yes
+  environment:
+    JAVA_HOME: "{{ karaf_java_home }}"
+  with_items: karaf_features
+  tags:
+    - features
+
+- name: "Cat feature.txt"
+  shell: cat /tmp/feature.txt
+  changed_when: false
+  register: karaf_find_feature_to_update
+  tags:
+    - features
+
+- name: "Update features"
+  shell: '{{ karaf_connect_to_local_Karaf_instance }} "{{ karaf_command_prefix_feature }}:install {{ item.name }}/{{ item.version }}"'
+  sudo: yes
+  sudo_user: "{{ karaf_os_user_name }}"
+  environment:
+    JAVA_HOME: "{{ karaf_java_home }}"
+  when: not karaf_find_feature_to_update.stdout|search("{{item.name}}\\s*{{item.version}}")
+  with_items: karaf_features
+  register: karaf_new_feature_update
+  tags:
+    - features
+
+- name: "Delete feature.txt"
+  file:
+    path: /tmp/feature.txt
+    state: absent
+  sudo: yes
+  changed_when: false
+  tags:
+    - features
+
+- name: "Restart Karaf"
+  action: shell echo "Restart Karaf"
+  notify: Karaf configuration changed
+  when: item.restart_karaf == "yes" and karaf_new_feature_update.changed
+  with_items: karaf_features
+  sudo: yes
+  tags:
+    - features

@@ -3,3 +3,9 @@
 - include: "install.yml"
 - include: "configure-wrapper.yml"
 - include: "configure-karaf.yml"
+
+- include: "delete-data.yml"
+  when: karaf_delete_data == "yes"
+
+- include: "update-features.yml"
+  when: karaf_features

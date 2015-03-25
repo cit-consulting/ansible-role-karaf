@@ -14,12 +14,25 @@
   tags:
     - config
 
+#- name: Apply custom configuration values
+#  lineinfile:
+#    dest: "{{ karaf_home }}/etc/{{ item.0.file }}"
+#    state: present
+#    regexp: "^#?{{ item.1.prop }}.*$"
+#    line: "{{ item.1.prop }} = {{ item.1.value }}"
+#  with_subelements:
+#    - karaf_custom_configuration
+#    - params
+#  when: item.1.value is defined and item.1.value != '_UNDEFINED_'
+#  notify: Karaf configuration changed
+#  tags:
+#    - config
+
 - name: Apply custom configuration values
-  lineinfile:
+  replace:
     dest: "{{ karaf_home }}/etc/{{ item.0.file }}"
-    state: present
-    regexp: "^#?{{ item.1.prop }}.*$"
-    line: "{{ item.1.prop }} = {{ item.1.value }}"
+    regexp: '^#?[ \t]*{{ item.1.prop }}([ \t\w\d:/@\.=,\-]+(\\\n\r?)?)+'
+    replace: "{{ item.1.prop }} = {{ item.1.value }}"
   with_subelements:
     - karaf_custom_configuration
     - params
@@ -27,3 +40,14 @@
   notify: Karaf configuration changed
   tags:
     - config
+
+
+#- name: "Add mvn url"
+#  replace:
+#    dest: '{{ karaf_home }}/etc/org.ops4j.pax.url.mvn.cfg'
+#    regexp: '^#?[ \t]*{{ karaf_search }}([ \t\w\d:/@\.=,\-]+(\\\n\r?)?)+'
+#    replace: "{{ karaf_search }} = {{ karaf_url_mvn_repositories }}"
+#  when: karaf_search != '' and karaf_url_mvn_repositories != ''
+#  notify: Karaf configuration changed
+#  tags:
+#    - config

@@ -4,7 +4,7 @@
 
 #TODO replace with unarchive module when bug #7258 will be fixed
 
-- name: Dowload Karaf distribution
+- name: "Dowload Karaf distribution"
   local_action:  get_url url={{ karaf_downoal_url }} dest=tmp/{{ karaf_distr_name }}.{{ karaf_archive_type }}
   when: karaf_downoal_url is defined
   run_once: true
@@ -13,14 +13,14 @@
   tags:
     - install
 
-- name: Upload Karaf distribution on target host
+- name: "Upload Karaf distribution on target host"
   copy:
     src: "tmp/{{ karaf_distr_name }}.{{ karaf_archive_type }}"
     dest: "/opt/"
   tags:
     - install
 
-- name: Unarchived Karaf distribution
+- name: "Unarchived Karaf distribution"
   shell: unzip -o {{ karaf_install_dir }}.{{ karaf_archive_type }}
   args:
     chdir: "/opt/"
@@ -31,7 +31,7 @@
   tags:
     - install
 
-- name: Unarchived {{ karaf_archive_type }} ESB {{ karaf_distr_name }}
+- name: "Unarchived {{ karaf_archive_type }} ESB {{ karaf_distr_name }}"
   shell: tar xzf {{ karaf_install_dir }}.{{ karaf_archive_type }}
   args:
     chdir: "/opt/"
@@ -50,18 +50,18 @@
   tags:
    - install
 
-- name: Create Karaf system user
+- name: "Create Karaf system user"
   user: name={{ karaf_os_user_name }} home={{ karaf_install_dir }} system=yes state=present
   tags:
     - install
 
-- name: Create directory karaf-extended-logging/1.0.0/
+- name: "Create directory karaf-extended-logging/1.0.0/"
   file: "path={{ karaf_home }}/system/ru/citc/karaf/karaf-extended-logging/1.0.0 state=directory"
   when: karaf_use_extended_logging and karaf_new_install_dir_created.changed
   tags:
     - install
 
-- name: Upload Karaf extended logging module
+- name: "Upload Karaf extended logging module"
   copy:
     src: "karaf-extended-logging-1.0.0.jar"
     dest: "{{ karaf_home }}/system/ru/citc/karaf/karaf-extended-logging/1.0.0/karaf-extended-logging-1.0.0.jar"
@@ -69,7 +69,7 @@
   tags:
     - install
 
-- name: Configure extended logging in startup.properties
+- name: "Configure extended logging in startup.properties"
   lineinfile:
     dest: "{{ karaf_home }}/etc/startup.properties"
     state: present
@@ -79,7 +79,7 @@
   tags:
     - install
 
-- name: Configure extended logging in org.ops4j.pax.logging.cfg
+- name: "Configure extended logging in org.ops4j.pax.logging.cfg"
   lineinfile:
     dest: "{{karaf_home }}/etc/org.ops4j.pax.logging.cfg"
     state: present
@@ -90,7 +90,7 @@
   tags:
     - install
 
-- name: Anjust filesystem access mode on Karaf dir
+- name: "Anjust filesystem access mode on Karaf dir"
   shell: chown -R {{ karaf_os_user_name }}:{{ karaf_os_user_name }} {{ karaf_install_dir }}
   when: karaf_new_install_dir_created.changed
   sudo: yes
@@ -101,7 +101,7 @@
   when: karaf_new_install_dir_created.changed
 
 # Install service wrapper
-- name: Check wrapper.conf availability
+- name: "Check wrapper.conf availability"
   stat: path={{karaf_home }}/etc/{{ karaf_service_name }}-wrapper.conf
   register: karaf_wrapper_conf_path_validation
   tags:
@@ -132,11 +132,9 @@
 #  tags:
 #   - install
 - name: "First start Karaf"
-  sudo: yes
-  shell: 'su {{ karaf_os_user_name }} -c {{karaf_home }}/bin/start'
-  environment:
-    JAVA_HOME: "{{ karaf_java_home }}"
+  shell: 'su - {{ karaf_os_user_name }} -c {{karaf_home }}/bin/start'
   when: not karaf_wrapper_conf_path_validation.stat.exists
+  sudo: yes
   tags:
    - install
 
@@ -147,15 +145,15 @@
     - install
 
 - name: "Generate service script"
-  sudo: yes
-  sudo_user: "{{ karaf_os_user_name }}"
   shell: "{{ item }}"
   with_items:
-    - '{{ karaf_home }}/bin/client -u {{ karaf_admin_user }} {{ "-p " ~ karaf_admin_pass if karaf_distr_version|version_compare("3.0.0", "<") else "" }} -h 127.0.0.1 -a {{ karaf_ssh_port }} "{{ karaf_command_prefix_feature }}:install wrapper"'
-    - '{{ karaf_home }}/bin/client -u {{ karaf_admin_user }} {{ "-p " ~ karaf_admin_pass if karaf_distr_version|version_compare("3.0.0", "<") else "" }} -h 127.0.0.1 -a {{ karaf_ssh_port }} "wrapper:install -n {{ karaf_service_name }} -d {{ karaf_service_name }} -D "{{ karaf_service_name }}""'
+    - '{{ karaf_connect_to_local_Karaf_instance }} "{{ karaf_command_prefix_feature }}:install wrapper"'
+    - '{{ karaf_connect_to_local_Karaf_instance }} "wrapper:install -n {{ karaf_service_name }} -d {{ karaf_service_name }} -D "{{ karaf_service_name }}""'
+  when: not karaf_wrapper_conf_path_validation.stat.exists
+  sudo: yes
+  sudo_user: "{{ karaf_os_user_name }}"
   environment:
     JAVA_HOME: "{{ karaf_java_home }}"
-  when: not karaf_wrapper_conf_path_validation.stat.exists
   tags:
    - install
 
@@ -169,7 +167,7 @@
   tags:
    - install
 
-- name: Configure service user
+- name: "Configure service user"
   lineinfile:
     dest: "{{ karaf_home }}/bin/{{ karaf_service_link_name }}"
     state: present
