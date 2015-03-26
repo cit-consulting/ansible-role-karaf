@@ -22,6 +22,8 @@ karaf_rmi_server_port: "44444"
 karaf_rmi_server_host: "0.0.0.0"
 karaf_rmi_jmx_realm: "karaf"
 
+karaf_environment_configs: '' # DEV, QA or PREPROD
+
 #karaf_container_subdirectory: "" # "container" for Talend
 karaf_home: "{{ karaf_install_dir }}{{ '/' ~ karaf_container_subdirectory if karaf_container_subdirectory is defined else '' }}"
 #TODO another default for Debian based repos
