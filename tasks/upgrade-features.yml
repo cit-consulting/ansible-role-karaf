@@ -1,0 +1,79 @@
+---
+
+- name: "Upgrade feature: Wait for Karaf to start"
+  wait_for: "port={{ karaf_ssh_port }} timeout=30"
+  tags:
+    - upgrade-features
+
+- name: "Upgrade feature: Add features configs"
+  sudo: yes
+  copy:
+    src: "{{ karaf_path_features_configs }}{{ '/' ~ karaf_environment_configs if karaf_environment_configs is defined else '' }}/{{ item.1 }}"
+    dest: '{{ karaf_home }}/etc'
+    owner: "{{ karaf_os_user_name }}"
+    group: "{{ karaf_os_user_name }}"
+    mode: 0644
+    backup: yes
+  with_subelements:
+    - karaf_features
+    - conf_files
+  tags:
+    - upgrade-features
+
+- name: "Upgrade feature: Add features url"
+  shell: '{{ karaf_connect_to_local_Karaf_instance }} "{{ karaf_command_prefix_feature }}:{{ karaf_command_prefix_refresh }} {{ item.url }}/xml/features"'
+  changed_when: false
+  sudo: yes
+  sudo_user: "{{ karaf_os_user_name }}"
+  environment:
+    JAVA_HOME: "{{ karaf_java_home }}"
+  with_items: karaf_features
+  tags:
+    - upgrade-features
+
+- name: "Upgrade feature: Update features"
+  shell: '{{ karaf_connect_to_local_Karaf_instance }} "{{ karaf_command_prefix_feature }}:{{ karaf_command_install_or_upgreade }} {{ item.name }}/{{ item.version }}" >>/tmp/feature.txt'
+  sudo: yes
+  changed_when: false
+  sudo_user: "{{ karaf_os_user_name }}"
+  environment:
+    JAVA_HOME: "{{ karaf_java_home }}"
+  with_items: karaf_features
+  tags:
+    - upgrade-features
+
+- name: "Upgrade feature: Cat feature.txt"
+  shell: cat /tmp/feature.txt
+  changed_when: false
+  register: karaf_find_feature_to_update
+  tags:
+    - upgrade-features
+
+- name: "Upgrade feature: Delete feature.txt"
+  file:
+    path: /tmp/feature.txt
+    state: absent
+  sudo: yes
+  changed_when: false
+  tags:
+    - upgrade-features
+
+- debug:
+    msg: "FEATURE {{ item.0.name }}/{{ item.0.version }} HAS A STATUS OF {{ item.1 }}"
+  failed_when: "'-1' in item.1"
+  changed_when: "'0' in item.1"
+  with_together:
+    - karaf_features
+    - karaf_find_feature_to_update.stdout_lines
+
+- name: "Upgrade feature: Restart Karaf"
+  action: shell echo "Restart Karaf"
+  notify: Karaf configuration changed
+  when: item.0.restart_karaf == "yes" and item.1 == "0"
+  with_together:
+    - karaf_features
+    - karaf_find_feature_to_update.stdout_lines
+
+  sudo: yes
+  tags:
+    - upgrade-features

@@ -47,6 +47,10 @@ karaf_base_configuration:
 karaf_extended_loggig_module: '{{ "mvn\:ru.citc.karaf/karaf-extended-logging/1.0.0 = 7" if karaf_distr_version|version_compare("3.0.0", ">=") else "ru/citc/karaf/karaf-extended-logging/1.0.0/karaf-extended-logging-1.0.0.jar=7" }}'
 
 karaf_command_prefix_feature: '{{ "feature" if karaf_distr_version|version_compare("3.0.0", ">=") else "features" }}'
-karaf_command_prefix_refresh: '{{ "repo-refresh" if karaf_distr_version|version_compare("3.0.0", ">=") else "refresh-url" }}'
+karaf_command_prefix_refresh: '{{ "repo-add" if karaf_distr_version|version_compare("3.0.0", ">=") else "refreshurl" }}'
 
 karaf_delete_data: 'no'
+
+karaf_feature_function_upgrade_name: '{{ "features-exp_3" if karaf_distr_version|version_compare("3.0.0", ">=") else "features-exp" }}'
+karaf_feature_function_upgrade_version: '{{ "1313" if karaf_distr_version|version_compare("3.0.0", ">=") else "" }}'
+karaf_feature_function_upgrade_url: '{{ "mvn:ru.citc.karaf.features.extensions/features-exp_3/0.1.0" if karaf_distr_version|version_compare("3.0.0", ">=") else "mvn:ru.citc.karaf.features.extensions/features-exp/0.1.0-SNAPSHOT" }}'

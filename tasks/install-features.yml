@@ -1,25 +1,26 @@
 ---
 
-- name: "Update feature: Wait for Karaf to start"
+- name: "Install feature: Wait for Karaf to start"
   wait_for: "port={{ karaf_ssh_port }} timeout=30"
   tags:
-    - features
+    - install-features
 
-- name: "Update feature: Add features configs"
+- name: "Install feature: Add features configs"
+  sudo: yes
   copy:
-    src: "features-configs{{ '/' ~ karaf_environment_configs if karaf_environment_configs is defined else '' }}/{{ item.1 }}"
+    src: "{{ karaf_path_features_configs }}{{ '/' ~ karaf_environment_configs if karaf_environment_configs is defined else '' }}/{{ item.1 }}"
     dest: '{{ karaf_home }}/etc'
     owner: "{{ karaf_os_user_name }}"
-    mode: 644
+    group: "{{ karaf_os_user_name }}"
+    mode: 0644
     backup: yes
   with_subelements:
     - karaf_features
     - conf_files
-  sudo: yes
   tags:
-    - features
+    - install-features
 
-- name: "Update feature: Add features url"
+- name: "Install feature: Add features url"
   shell: '{{ karaf_connect_to_local_Karaf_instance }} "{{ karaf_command_prefix_feature }}:{{ karaf_command_prefix_refresh }} {{ item.url }}/xml/features"'
   changed_when: false
   sudo: yes
@@ -28,9 +29,9 @@
     JAVA_HOME: "{{ karaf_java_home }}"
   with_items: karaf_features
   tags:
-    - features
+    - install-features
 
-- name: "Update feature: Check features install"
+- name: "Install feature: Check features install"
   shell: '{{ karaf_connect_to_local_Karaf_instance }} "{{ karaf_command_prefix_feature }}:list -i --no-format | grep {{ item.name }}\\\s+{{ item.version }}" >>/tmp/feature.txt'
   changed_when: false
   sudo: yes
@@ -38,17 +39,17 @@
     JAVA_HOME: "{{ karaf_java_home }}"
   with_items: karaf_features
   tags:
-    - features
+    - install-features
 
-- name: "Update feature: Cat feature.txt"
+- name: "Install feature: Cat feature.txt"
   shell: cat /tmp/feature.txt
   changed_when: false
   register: karaf_find_feature_to_update
   tags:
-    - features
+    - install-features
 
-- name: "Update feature: Update features"
-  shell: '{{ karaf_connect_to_local_Karaf_instance }} "{{ karaf_command_prefix_feature }}:install {{ item.name }}/{{ item.version }}"'
+- name: "Install feature: Update features"
+  shell: '{{ karaf_connect_to_local_Karaf_instance }} "{{ karaf_command_prefix_feature }}:{{ karaf_command_install_or_upgreade }} {{ item.name }}/{{ item.version }}"'
   sudo: yes
   sudo_user: "{{ karaf_os_user_name }}"
   environment:
@@ -57,22 +58,22 @@
   with_items: karaf_features
   register: karaf_new_feature_update
   tags:
-    - features
+    - install-features
 
-- name: "Update feature: Delete feature.txt"
+- name: "Install feature: Delete feature.txt"
   file:
     path: /tmp/feature.txt
     state: absent
   sudo: yes
   changed_when: false
   tags:
-    - features
+    - install-features
 
-- name: "Update feature: Restart Karaf"
+- name: "Install feature: Restart Karaf"
   action: shell echo "Restart Karaf"
   notify: Karaf configuration changed
   when: item.restart_karaf == "yes" and karaf_new_feature_update.changed
   with_items: karaf_features
   sudo: yes
   tags:
-    - features
+    - install-features

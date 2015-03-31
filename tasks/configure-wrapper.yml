@@ -1,6 +1,6 @@
 ---
 
-- name: Configure wrapper 1
+- name: "Configure wrapper 1"
   lineinfile:
     dest: "{{karaf_home }}/etc/{{ karaf_service_name }}-wrapper.conf"
     state: present
@@ -11,7 +11,7 @@
   tags:
     - config
 
-- name: Configure wrapper default JVM options
+- name: "Configure wrapper default JVM options"
   lineinfile:
     dest: "{{karaf_home }}/etc/{{ karaf_service_name }}-wrapper.conf"
     state: present
@@ -22,7 +22,7 @@
   tags:
     - config
 
-- name: Configure wrapper additional JVM options
+- name: "Configure wrapper additional JVM options"
   lineinfile:
     dest: "{{karaf_home }}/etc/{{ karaf_service_name }}-wrapper.conf"
     state: present

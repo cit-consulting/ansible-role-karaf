@@ -118,19 +118,6 @@
   tags:
    - install
 
-## Ansible kills parent process for some reason...
-#- name: "First start Karaf"
-#  shell: '{{ karaf_home }}/bin/start'
-#  args:
-#    chdir: "{{ karaf_install_dir }}"
-#  when: not karaf_wrapper_conf_path_validation.stat.exists
-#  sudo: yes
-#  sudo_user: "{{ karaf_os_user_name }}"
-#  environment:
-#    JAVA_HOME: "{{ karaf_java_home }}"
-#    KARAF_REDIRECT: "{{ karaf_home }}/startup.log"
-#  tags:
-#   - install
 - name: "First start Karaf"
   shell: 'su - {{ karaf_os_user_name }} -c {{karaf_home }}/bin/start'
   when: not karaf_wrapper_conf_path_validation.stat.exists
@@ -193,3 +180,7 @@
   sudo: yes
   tags:
     - install
+
+# Install upgrade function
+- include: "add-upgrade-function.yml"
+  when: karaf_new_install_dir_created.changed

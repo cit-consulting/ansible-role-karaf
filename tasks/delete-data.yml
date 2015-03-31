@@ -8,20 +8,20 @@
   register: karaf_stop_service
   sudo: yes
   tags:
-    - delete_data
+    - delete-data
 
 - name: "Delete Data: Create directory data-backup"
   file:
     path: '{{ karaf_home }}/data-backup'
     state: directory
   tags:
-    - delete_data
+    - delete-data
 
 - name: "Delete Data: move 'data' directory"
   shell: 'mv -f {{ karaf_home }}/data {{ karaf_home }}/data-backup/$(date +%F_%T)'
   sudo: yes
   tags:
-    - delete_data
+    - delete-data
 
 - name: "Delete Data: Start Karaf service"
   service:
@@ -29,4 +29,7 @@
     state: started
   sudo: yes
   tags:
-    - delete_data
+    - delete-data
+
+# Install upgrade function
+- include: "add-upgrade-function.yml"

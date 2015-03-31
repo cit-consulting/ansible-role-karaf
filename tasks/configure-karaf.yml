@@ -1,6 +1,6 @@
 ---
 
-- name: Apply base configuration values
+- name: "Apply base configuration values"
   lineinfile:
     dest: "{{ karaf_home }}/etc/{{ item.0.file }}"
     state: present
@@ -14,25 +14,12 @@
   tags:
     - config
 
-#- name: Apply custom configuration values
-#  lineinfile:
-#    dest: "{{ karaf_home }}/etc/{{ item.0.file }}"
-#    state: present
-#    regexp: "^#?{{ item.1.prop }}.*$"
-#    line: "{{ item.1.prop }} = {{ item.1.value }}"
-#  with_subelements:
-#    - karaf_custom_configuration
-#    - params
-#  when: item.1.value is defined and item.1.value != '_UNDEFINED_'
-#  notify: Karaf configuration changed
-#  tags:
-#    - config
-
-- name: Apply custom configuration values
-  replace:
+- name: "Apply custom configuration values"
+  lineinfile:
     dest: "{{ karaf_home }}/etc/{{ item.0.file }}"
-    regexp: '^#?[ \t]*{{ item.1.prop }}([ \t\w\d:/@\.=,\-]+(\\\n\r?)?)+'
-    replace: "{{ item.1.prop }} = {{ item.1.value }}"
+    state: present
+    regexp: "^#?{{ item.1.prop }}.*$"
+    line: "{{ item.1.prop }} = {{ item.1.value }}"
   with_subelements:
     - karaf_custom_configuration
     - params
@@ -41,13 +28,25 @@
   tags:
     - config
 
+- name: "Apply multiline custom configuration values"
+  replace:
+    dest: "{{ karaf_home }}/etc/{{ item.0.file }}"
+    regexp: '^#?[ \t]*{{ item.1.prop }}([ \t\w\d:/@\.=,\-]+(\\\n\r?)?)+'
+    replace: "{{ item.1.prop }} = {{ item.1.value }}"
+  with_subelements:
+    - karaf_multiline_custom_configuration
+    - params
+  when: item.1.value is defined and item.1.value != '_UNDEFINED_'
+  notify: Karaf configuration changed
+  tags:
+    - config
 
-#- name: "Add mvn url"
-#  replace:
-#    dest: '{{ karaf_home }}/etc/org.ops4j.pax.url.mvn.cfg'
-#    regexp: '^#?[ \t]*{{ karaf_search }}([ \t\w\d:/@\.=,\-]+(\\\n\r?)?)+'
-#    replace: "{{ karaf_search }} = {{ karaf_url_mvn_repositories }}"
-#  when: karaf_search != '' and karaf_url_mvn_repositories != ''
-#  notify: Karaf configuration changed
-#  tags:
-#    - config
+- name: 'Configure jre.properties'
+  replace:
+    dest: "{{ karaf_home }}/etc/jre.properties"
+    regexp: '(^#?[ \t]*jre-1.[\d\d])([ \t\w\d:/@\.=,\-]+)'
+    replace: '\1={{ karaf_jre_properties }}, '
+  when: karaf_jre_properties != ''
+  notify: Karaf configuration changed
+  tags:
+    - config
