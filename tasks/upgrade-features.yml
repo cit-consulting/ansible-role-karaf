@@ -31,6 +31,16 @@
   tags:
     - upgrade-features
 
+- name: "Upgrade feature: Fist Delete feature.txt"
+  file:
+    path: /tmp/feature.txt
+    state: absent
+  sudo: yes
+  ignore_errors: True
+  changed_when: false
+  tags:
+    - upgrade-features
+
 - name: "Upgrade feature: Update features"
   shell: '{{ karaf_connect_to_local_Karaf_instance }} "{{ karaf_command_prefix_feature }}:{{ karaf_command_install_or_upgreade }} {{ item.name }}/{{ item.version }}" >>/tmp/feature.txt'
   sudo: yes
@@ -59,21 +69,19 @@
     - upgrade-features
 
 - debug:
-    msg: "FEATURE {{ item.0.name }}/{{ item.0.version }} HAS A STATUS OF {{ item.1 }}"
-  failed_when: "'-1' in item.1"
-  changed_when: "'0' in item.1"
-  with_together:
-    - karaf_features
-    - karaf_find_feature_to_update.stdout_lines
+    msg: "Return code: {{ item }}"
+  failed_when: "'-1' in item"
+  changed_when: "'0' in item"
+  when: item == '0' or item == '1' or item == '-1'
+  with_items: karaf_find_feature_to_update.stdout_lines
 
 - name: "Upgrade feature: Restart Karaf"
   action: shell echo "Restart Karaf"
   notify: Karaf configuration changed
   when: item.0.restart_karaf == "yes" and item.1 == "0"
-  with_together:
+  with_nested:
     - karaf_features
     - karaf_find_feature_to_update.stdout_lines
-
   sudo: yes
   tags:
     - upgrade-features
