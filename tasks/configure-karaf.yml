@@ -20,6 +20,10 @@
     state: present
     regexp: "^#?{{ item.1.prop }}.*$"
     line: "{{ item.1.prop }} = {{ item.1.value }}"
+    owner: "{{ karaf_os_user_name }}"
+    group: "{{ karaf_os_user_name }}"
+    mode: 0644
+    create: yes
   with_subelements:
     - karaf_custom_configuration
     - params
