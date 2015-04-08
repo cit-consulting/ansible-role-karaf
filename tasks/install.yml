@@ -183,4 +183,3 @@
 
 # Install upgrade function
 - include: "add-upgrade-function.yml"
-  when: karaf_new_install_dir_created.changed
