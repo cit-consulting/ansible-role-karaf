@@ -180,6 +180,3 @@
   sudo: yes
   tags:
     - install
-
-# Install upgrade function
-- include: "add-upgrade-function.yml"

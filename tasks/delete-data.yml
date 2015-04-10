@@ -29,6 +29,3 @@
   sudo: yes
   tags:
     - delete-data
-
-# Install upgrade function
-- include: "add-upgrade-function.yml"

@@ -7,6 +7,9 @@
 - include: "delete-data.yml"
   when: karaf_delete_data == "yes"
 
+# Install upgrade function
+- include: "add-upgrade-function.yml"
+
 - include: "install-features.yml"
   when: karaf_features and karaf_command_install_or_upgreade == 'install'
 
