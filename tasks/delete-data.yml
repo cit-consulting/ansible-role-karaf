@@ -5,7 +5,6 @@
     name: '{{ karaf_service_link_name }}'
     state: stopped
   ignore_errors: True
-  register: karaf_stop_service
   sudo: yes
   tags:
     - delete-data
