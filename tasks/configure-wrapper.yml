@@ -7,7 +7,7 @@
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items: karaf_wrapper_conf1
-  notify: Wrapper configuration changed
+  notify: Karaf configuration changed
   tags:
     - config
 
@@ -18,7 +18,7 @@
     insertafter: "^#?wrapper.java.additional.{{ karaf_wrapper_conf_last_num|int + item.0 }}.*$"
     line: "wrapper.java.additional.{{ karaf_wrapper_conf_last_num|int + item.0 + 1 }}={{ item.1 }}"
   with_indexed_items: karaf_wrapper_default_jvm_options
-  notify: Wrapper configuration changed
+  notify: Karaf configuration changed
   tags:
     - config
 
@@ -29,6 +29,6 @@
     insertafter: "^#?wrapper.java.additional.{{ karaf_wrapper_conf_last_num|int + item.0 + 3}}.*$"
     line: "wrapper.java.additional.{{ karaf_wrapper_conf_last_num|int + item.0 + 4 }}={{ item.1 }}"
   with_indexed_items: karaf_wrapper_additional_jvm_options
-  notify: Wrapper configuration changed
+  notify: Karaf configuration changed
   tags:
     - config
