@@ -5,11 +5,11 @@
   tags:
     - install-features
 
-- name: "Install feature: Add features configs"
+- name: "Upgrade feature: Add features configs"
   sudo: yes
-  copy:
+  template:
     src: "{{ karaf_path_features_configs }}{{ '/' ~ karaf_environment_configs if karaf_environment_configs is defined else '' }}/{{ item.1 }}"
-    dest: '{{ karaf_home }}/etc'
+    dest: '{{ karaf_home }}/etc/{{ item.1 | regex_replace(".j2", "") }}'
     owner: "{{ karaf_os_user_name }}"
     group: "{{ karaf_os_user_name }}"
     mode: 0644
@@ -18,7 +18,7 @@
     - karaf_features
     - conf_files
   tags:
-    - install-features
+    - upgrade-features
 
 - name: "Install feature: Add features url"
   shell: '{{ karaf_connect_to_local_Karaf_instance }} "{{ karaf_command_prefix_feature }}:{{ karaf_command_prefix_refresh }} {{ item.url }}/xml/features"'
