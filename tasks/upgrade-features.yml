@@ -20,6 +20,21 @@
   tags:
     - upgrade-features
 
+- name: "Upgrade feature: Add external data source"
+  sudo: yes
+  template:
+    src: "{{ karaf_path_features_configs }}{{ '/' ~ karaf_environment_configs if karaf_environment_configs is defined else '' }}/{{ item.1 }}"
+    dest: '{{ karaf_home }}/deploy/{{ item.1 | regex_replace(".j2", "") }}'
+    owner: "{{ karaf_os_user_name }}"
+    group: "{{ karaf_os_user_name }}"
+    mode: 0644
+    backup: yes
+  with_subelements:
+    - karaf_features
+    - data_source_files
+  tags:
+    - upgrade-features
+
 - name: "Upgrade feature: Add features url"
   shell: '{{ karaf_connect_to_local_Karaf_instance }} "{{ karaf_command_prefix_feature }}:{{ karaf_command_prefix_refresh }} {{ item.url }}/xml/features"'
   changed_when: false

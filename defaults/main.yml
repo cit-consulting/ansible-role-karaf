@@ -68,6 +68,9 @@ karaf_features: []
 #    conf_files:
 #      - 1.cfg
 #      - 2.cfg
+#   data_source_files:
+#     - 1.cfg
+#     - 2.cfg
 
 karaf_jre_properties: ''
 #  sun.misc,
