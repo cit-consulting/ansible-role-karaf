@@ -81,3 +81,5 @@ karaf_url_mvn_repositories:
 #    http://maven1.citc.ru/content/groups/ru.citc1/,
 #    http://maven1.citc.ru/content/groups/public/,
 #    http://maven1.citc.ru/content/groups/GlavTaxi
+
+karaf_pause_update_features: "no"

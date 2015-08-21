@@ -90,6 +90,11 @@
   when: item == '0' or item == '1' or item == '-1'
   with_items: karaf_find_feature_to_update.stdout_lines
 
+- name: "Pause until you can verify updates to an application were successful."
+  pause:
+  sudo: yes
+  when: karaf_pause_update_features == "yes"
+
 - name: "Upgrade feature: Restart Karaf"
   action: shell echo "Restart Karaf"
   notify: Karaf configuration changed
