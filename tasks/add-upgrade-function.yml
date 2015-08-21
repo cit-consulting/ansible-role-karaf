@@ -9,6 +9,7 @@
   sudo_user: "{{ karaf_os_user_name }}"
   environment:
     JAVA_HOME: "{{ karaf_java_home }}"
+  changed_when: false
   tags:
     - upgrage-function
 
@@ -18,5 +19,6 @@
   sudo_user: "{{ karaf_os_user_name }}"
   environment:
     JAVA_HOME: "{{ karaf_java_home }}"
+  changed_when: false
   tags:
     - upgrage-function
