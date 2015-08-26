@@ -82,4 +82,6 @@ karaf_url_mvn_repositories:
 #    http://maven1.citc.ru/content/groups/public/,
 #    http://maven1.citc.ru/content/groups/GlavTaxi
 
-karaf_pause_update_features: "no"
+karaf_pause_update_features: 'no' # 'yes' or 'no'
+karaf_pause_to_ferst_start: 'no' # 'yes' or 'no'
+karaf_time_pause_to_ferst_start: "20" # 20-seconds
