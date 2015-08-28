@@ -133,7 +133,7 @@
 
 - name: "Pause for Karaf to start "
   pause:
-    seconds: {{ karaf_time_pause_to_ferst_start }}
+    seconds: "{{ karaf_time_pause_to_ferst_start }}"
   when: not karaf_wrapper_conf_path_validation.stat.exists and karaf_pause_to_ferst_start == "yes"
   tags:
     - install
