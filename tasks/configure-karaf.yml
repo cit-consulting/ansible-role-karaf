@@ -48,9 +48,20 @@
 - name: 'Configure jre.properties'
   replace:
     dest: "{{ karaf_home }}/etc/jre.properties"
-    regexp: '(^#?[ \t]*jre-1.[\d\d])([ \t\w\d:/@\.=,\-]+)'
+    regexp: '(#?[ \t]*jre-1.[\d\d])([ \t\w\d:/@\.=,\-]+)'
     replace: '\1={{ karaf_jre_properties }}, '
   when: karaf_jre_properties != ''
+  notify: Karaf configuration changed
+  tags:
+    - config
+
+- name: 'Configure custom jre.properties'
+  replace:
+    dest: "{{ karaf_home }}/etc/jre.properties"
+    regexp: '(.*javax.xml.validation).*([ \t\w\d:/@\.=,\-])'
+    replace: ' {{ item.prop }};{{ item.value }}, '
+  with_items: karaf_custom_jre_properties
+  when: item.value is defined and item.value != '_UNDEFINED_'
   notify: Karaf configuration changed
   tags:
     - config
