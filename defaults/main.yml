@@ -55,6 +55,9 @@ karaf_custom_configuration: []
 #      - { prop: "rmiServerHost", value: "{{ karaf_rmi_server_host }}" }
 #      - { prop: "jmxRealm", value: "{{ karaf_rmi_jmx_realm }}" }
 
+karaf_custom_jre_properties: []
+#      - { prop: 'javax.xml.validation', value: 'version="1.0"' }
+
 karaf_wrapper_additional_jvm_options: []
 #  - "-Duser.encoding=AAAA"
 
