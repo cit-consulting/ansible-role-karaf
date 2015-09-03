@@ -51,6 +51,10 @@ karaf_command_prefix_refresh: '{{ "repo-add" if karaf_distr_version|version_comp
 
 karaf_delete_data: 'no'
 
+karaf_command_prefix_refresh: '{{ "repo-add" if karaf_distr_version|version_compare("3.0.0", ">=") else "addurl" }}'
+
+karaf_delete_data: 'no'
+
 karaf_feature_function_upgrade_name: '{{ "features-exp" if karaf_distr_version|version_compare("3.0.0", ">=") else "features-exp" }}'
-karaf_feature_function_upgrade_version: '{{ "" if karaf_distr_version|version_compare("3.0.0", ">=") else "" }}'
-karaf_feature_function_upgrade_url: '{{ "mvn:ru.citc.karaf.features.extensions/features-exp/3.0.0-SNAPSHOT" if karaf_distr_version|version_compare("3.0.0", ">=") else "mvn:ru.citc.karaf.features.extensions/features-exp/0.1.0-SNAPSHOT" }}'
+karaf_feature_function_upgrade_version: '{{ "" if karaf_distr_version|version_compare("3.0.0", ">=") else "2.0.0" }}'
+karaf_feature_function_upgrade_url: '{{ "mvn:ru.citc.karaf.features.extensions/features-exp/3.0.0-SNAPSHOT" if karaf_distr_version|version_compare("3.0.0", ">=") else "mvn:ru.citc.karaf.features.extensions/features-exp/2.0.0" }}'
