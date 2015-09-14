@@ -2,7 +2,9 @@
 
 # karaf_distr_version: "2.3.8"
 karaf_distr_name: "apache-karaf-{{ karaf_distr_version }}" #"TESB_SE-V5.5.1" #"apache-karaf-3.0.1" #
-karaf_install_dir: "/opt/{{ karaf_distr_name }}"
+
+karaf_install_dir: "/opt"
+
 karaf_archive_type: "tar.gz" # "zip" or "tar.gz"
 karaf_os_user_name: "karaf"
 karaf_service_name: "karaf"
@@ -27,7 +29,7 @@ karaf_environment_configs: '' # DEV, QA or PREPROD ...
 karaf_command_install_or_upgreade: 'upgrade'
 
 #karaf_container_subdirectory: "" # "container" for Talend
-karaf_home: "{{ karaf_install_dir }}{{ '/' ~ karaf_container_subdirectory if karaf_container_subdirectory is defined else '' }}"
+karaf_home: "{{ karaf_install_dir }}/{{ karaf_distr_name }}{{ '/' ~ karaf_container_subdirectory if karaf_container_subdirectory is defined else '' }}"
 #TODO another default for Debian based repos
 karaf_java_home: "/usr/java/default" # Use when installing jdk
 
@@ -88,3 +90,5 @@ karaf_url_mvn_repositories:
 karaf_pause_update_features: 'no' # 'yes' or 'no'
 karaf_pause_to_ferst_start: 'no' # 'yes' or 'no'
 karaf_time_pause_to_ferst_start: "20" # 20-seconds
+
+karaf_path_to_data_backup: "/opt/data-backup"

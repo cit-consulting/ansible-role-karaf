@@ -11,13 +11,13 @@
 
 - name: "Delete Data: Create directory data-backup"
   file:
-    path: '/opt/data-backup'
+    path: '{{ karaf_path_to_data_backup }}'
     state: directory
   tags:
     - delete-data
 
 - name: "Delete Data: move 'data' directory"
-  shell: 'mv -f {{ karaf_home }}/data /opt/data-backup/$(date +%F_%T)'
+  shell: 'mv -f {{ karaf_home }}/data {{ karaf_path_to_data_backup }}$(date +%F_%T)'
   sudo: yes
   tags:
     - delete-data

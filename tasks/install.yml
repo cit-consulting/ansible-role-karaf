@@ -13,51 +13,56 @@
   tags:
     - install
 
-- name: "Upload Karaf distribution on target host"
-  copy:
-    src: "tmp/{{ karaf_distr_name }}.{{ karaf_archive_type }}"
-    dest: "/opt/"
+- name: "Check karaf install dyrectory is not empty"
+  stat:
+    path: "{{ karaf_home }}"
+  register: karaf_new_install_dir_created
+  tags:
+    - install
+
+- name: "Create installation directory"
+  file:
+    path: "{{ karaf_install_dir }}/{{ karaf_distr_name }}"
+    state: directory
+  sudo: yes
+  when: not karaf_new_install_dir_created.stat.exists
+
+
+- name: "Create Karaf system user"
+  user:
+    name: "{{ karaf_os_user_name }}"
+    home: "{{ karaf_install_dir }}/{{ karaf_distr_name }}"
+    system: yes
+    state: present
+  sudo: yes
+  when: not karaf_new_install_dir_created.stat.exists
   tags:
     - install
 
 - name: "Unarchived Karaf distribution"
-  shell: unzip -o {{ karaf_install_dir }}.{{ karaf_archive_type }}
-  args:
-    chdir: "/opt/"
-    creates: "{{ karaf_install_dir }}"
-  when: karaf_archive_type == "zip"
-  register: karaf_new_install_dir_created
+  unarchive:
+    src: "tmp/{{ karaf_distr_name }}.{{ karaf_archive_type }}"
+    dest: "{{ karaf_install_dir }}"
   sudo: yes
-  tags:
-    - install
-
-- name: "Unarchived {{ karaf_archive_type }} ESB {{ karaf_distr_name }}"
-  shell: tar xzf {{ karaf_install_dir }}.{{ karaf_archive_type }}
-  args:
-    chdir: "/opt/"
-    creates: "{{ karaf_install_dir }}"
-  when: karaf_archive_type == "tar.gz"
-  register: karaf_new_install_dir_created
-  sudo: yes
+  when: not karaf_new_install_dir_created.stat.exists
   tags:
     - install
 
 - name: "Stop Karaf service if running"
-  service: name={{ karaf_service_link_name }} state=stopped
+  service:
+    name: "{{ karaf_service_link_name }}"
+    state: stopped
   ignore_errors: True
-  when: karaf_use_extended_logging and karaf_new_install_dir_created.changed
+  when: karaf_use_extended_logging and not karaf_new_install_dir_created.stat.exists
   sudo: yes
   tags:
    - install
 
-- name: "Create Karaf system user"
-  user: name={{ karaf_os_user_name }} home={{ karaf_install_dir }} system=yes state=present
-  tags:
-    - install
-
 - name: "Create directory karaf-extended-logging/1.0.0/"
-  file: "path={{ karaf_home }}/system/ru/citc/karaf/karaf-extended-logging/1.0.0 state=directory"
-  when: karaf_use_extended_logging and karaf_new_install_dir_created.changed
+  file:
+    path: "{{ karaf_home }}/system/ru/citc/karaf/karaf-extended-logging/1.0.0"
+    state: directory
+  when: karaf_use_extended_logging and not karaf_new_install_dir_created.stat.exists
   tags:
     - install
 
@@ -65,7 +70,7 @@
   copy:
     src: "karaf-extended-logging-1.0.0.jar"
     dest: "{{ karaf_home }}/system/ru/citc/karaf/karaf-extended-logging/1.0.0/karaf-extended-logging-1.0.0.jar"
-  when: karaf_use_extended_logging and karaf_new_install_dir_created.changed
+  when: karaf_use_extended_logging and not karaf_new_install_dir_created.stat.exists
   tags:
     - install
 
@@ -75,7 +80,7 @@
     state: present
     insertbefore: '^.*/pax-logging-api/.*$'
     line: '{{ karaf_extended_loggig_module }}'
-  when: karaf_use_extended_logging and karaf_new_install_dir_created.changed
+  when: karaf_use_extended_logging and not karaf_new_install_dir_created.stat.exists
   tags:
     - install
 
@@ -86,23 +91,24 @@
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items: karaf_logging_properties
-  when: karaf_use_extended_logging and karaf_new_install_dir_created.changed
+  when: karaf_use_extended_logging and not karaf_new_install_dir_created.stat.exists
   tags:
     - install
 
 - name: "Anjust filesystem access mode on Karaf dir"
-  shell: chown -R {{ karaf_os_user_name }}:{{ karaf_os_user_name }} {{ karaf_install_dir }}
-  when: karaf_new_install_dir_created.changed
+  shell: chown -R {{ karaf_os_user_name }}:{{ karaf_os_user_name }} {{ karaf_install_dir }}/{{ karaf_distr_name }}
+  when: not karaf_new_install_dir_created.stat.exists
   sudo: yes
   tags:
     - install
 
 - include: "configure-karaf.yml"
-  when: karaf_new_install_dir_created.changed
+  when: not karaf_new_install_dir_created.stat.exists
 
 # Install service wrapper
 - name: "Check wrapper.conf availability"
-  stat: path={{karaf_home }}/etc/{{ karaf_service_name }}-wrapper.conf
+  stat:
+    path: "{{karaf_home }}/etc/{{ karaf_service_name }}-wrapper.conf"
   register: karaf_wrapper_conf_path_validation
   tags:
     - install
@@ -126,7 +132,9 @@
    - install
 
 - name: "Wait for Karaf to start"
-  wait_for: "port={{ karaf_ssh_port }} timeout=30"
+  wait_for:
+    port: "{{ karaf_ssh_port }}"
+    timeout: 30
   when: not karaf_wrapper_conf_path_validation.stat.exists
   tags:
     - install
@@ -173,7 +181,10 @@
     - install
 
 - name: "Create service simlink"
-  file: src={{karaf_home }}/bin/{{ karaf_service_link_name }} dest=/etc/init.d/{{ karaf_service_link_name }} state=link
+  file:
+    src: "{{karaf_home }}/bin/{{ karaf_service_link_name }}"
+    dest: "/etc/init.d/{{ karaf_service_link_name }}"
+    state: link
   when: not karaf_wrapper_conf_path_validation.stat.exists
   tags:
    - install
@@ -182,7 +193,10 @@
   when: not karaf_wrapper_conf_path_validation.stat.exists
 
 - name: "Register and start service"
-  service: name={{ karaf_service_link_name }} enabled=yes state=started
+  service:
+    name: "{{ karaf_service_link_name }}"
+    enabled: yes
+    state: started
   when: not karaf_wrapper_conf_path_validation.stat.exists
   sudo: yes
   tags:
