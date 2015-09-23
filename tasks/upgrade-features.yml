@@ -99,7 +99,7 @@
   action: shell echo "Restart Karaf"
   notify: Karaf configuration changed
   when: item.0.restart_karaf == "yes" and item.1 == "0"
-  with_nested:
+  with_together:
     - karaf_features
     - karaf_find_feature_to_update.stdout_lines
   sudo: yes
