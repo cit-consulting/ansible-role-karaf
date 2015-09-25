@@ -105,3 +105,14 @@
   sudo: yes
   tags:
     - upgrade-features
+
+#- name: "Install feature: Restart Karaf"
+#  action: shell echo "Restart Karaf"
+##  notify: Karaf configuration changed
+#  when: item.0.restart_karaf == "yes" and item.1.rc == 0
+#  with_together:
+#    - karaf_features
+#    - karaf_new_feature_update.results
+#  sudo: yes
+#  tags:
+#    - install-features

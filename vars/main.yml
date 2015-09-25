@@ -18,8 +18,6 @@ karaf_wrapper_conf1:
   - { regexp: "^#?wrapper.java.initmemory.*$", line: "wrapper.java.initmemory={{ karaf_java_initial_memory }}" }
   - { regexp: "^#?wrapper.java.maxmemory.*$", line: "wrapper.java.maxmemory={{ karaf_java_max_memory }}" }
 
-karaf_wrapper_conf_last_num: '{{ 10 if karaf_distr_version|version_compare("3.0.0", ">=") else 8 }}'
-
 karaf_wrapper_default_jvm_options:
   - "-Dfile.encoding=UTF-8"
   - "-XX:MaxPermSize={{ karaf_java_max_perm_memory }}m"

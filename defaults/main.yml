@@ -63,6 +63,8 @@ karaf_custom_jre_properties: []
 karaf_wrapper_additional_jvm_options: []
 #  - "-Duser.encoding=AAAA"
 
+karaf_wrapper_conf_last_num: '{{ 10 if karaf_distr_version|version_compare("3.0.0", ">=") else 8 }}'
+
 karaf_connect_to_local_Karaf_instance: '{{ karaf_home }}/bin/client -u {{ karaf_admin_user }} {{ "-p " ~ karaf_admin_pass if karaf_distr_version|version_compare("3.0.0", "<") else "" }} -h 127.0.0.1 -a {{ karaf_ssh_port }}'
 
 karaf_features: []
