@@ -84,6 +84,12 @@
   tags:
     - install-features
 
+- name: "Pause until you can verify updates to an application were successful."
+  pause:
+    seconds: '10'
+  sudo: yes
+  when: karaf_pause_update_features == "yes"
+
 - name: "Install feature: Restart Karaf"
   action: shell echo "Restart Karaf"
   notify: Karaf configuration changed
