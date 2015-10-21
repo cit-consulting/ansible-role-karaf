@@ -6,7 +6,7 @@ Ansible role for installation and configuration Apache Karaf container.
 Requirements
 ------------
 
-To use this role JVM version 1.6/1.7 should be installed on host.
+To use this role JVM version 1.7/1.8 should be installed on host.
 
 Role Variables
 --------------
