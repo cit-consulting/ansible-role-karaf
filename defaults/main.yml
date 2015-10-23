@@ -1,7 +1,7 @@
 ---
 
-# karaf_distr_version: "2.3.8"
-karaf_distr_name: "apache-karaf-{{ karaf_distr_version }}" #"TESB_SE-V5.5.1" #"apache-karaf-3.0.1" #
+# karaf_distr_version: "4.0.2"
+karaf_distr_name: "apache-karaf-{{ karaf_distr_version }}" #"TESB_SE-V6.0.1" #"apache-karaf-4.0.2" #
 
 karaf_install_dir: "/opt"
 
@@ -25,8 +25,6 @@ karaf_rmi_server_host: "0.0.0.0"
 karaf_rmi_jmx_realm: "karaf"
 
 karaf_environment_configs: '' # DEV, QA or PREPROD ...
-
-karaf_command_install_or_upgreade: 'upgrade'
 
 #karaf_container_subdirectory: "" # "container" for Talend
 karaf_home: "{{ karaf_install_dir }}/{{ karaf_distr_name }}{{ '/' ~ karaf_container_subdirectory if karaf_container_subdirectory is defined else '' }}"
@@ -63,9 +61,9 @@ karaf_custom_jre_properties: []
 karaf_wrapper_additional_jvm_options: []
 #  - "-Duser.encoding=AAAA"
 
-karaf_wrapper_conf_last_num: '{{ 10 if karaf_distr_version|version_compare("3.0.0", ">=") else 8 }}'
+karaf_wrapper_conf_last_num: '9'
 
-karaf_connect_to_local_Karaf_instance: '{{ karaf_home }}/bin/client -u {{ karaf_admin_user }} {{ "-p " ~ karaf_admin_pass if karaf_distr_version|version_compare("3.0.0", "<") else "" }} -h 127.0.0.1 -a {{ karaf_ssh_port }}'
+karaf_connect_to_local_Karaf_instance: '{{ karaf_home }}/bin/client -u {{ karaf_admin_user }} -h 127.0.0.1 -a {{ karaf_ssh_port }}'
 
 karaf_features: []
 #  - name: 'openmq-broker'
@@ -91,6 +89,7 @@ karaf_url_mvn_repositories:
 
 karaf_pause_update_features: 'no' # 'yes' or 'no'
 karaf_pause_to_ferst_start: 'no' # 'yes' or 'no'
-karaf_time_pause_to_ferst_start: "20" # 20-seconds
+karaf_time_pause_to_ferst_start: '20' # 20-seconds
+karaf_timeout_to_wait_service: '15000' # 15-seconds
 
 karaf_path_to_data_backup: "/opt/data-backup"

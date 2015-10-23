@@ -2,8 +2,6 @@
 
 # Install ESB
 
-#TODO replace with unarchive module when bug #7258 will be fixed
-
 - name: "Dowload Karaf distribution"
   local_action:  get_url url={{ karaf_downoal_url }} dest=tmp/{{ karaf_distr_name }}.{{ karaf_archive_type }}
   when: karaf_downoal_url is defined
@@ -27,6 +25,15 @@
   sudo: yes
   when: not karaf_new_install_dir_created.stat.exists
 
+- name: "Stop Karaf service if running"
+  service:
+    name: "{{ karaf_service_link_name }}"
+    state: stopped
+  ignore_errors: True
+  when: not karaf_new_install_dir_created.stat.exists
+  sudo: yes
+  tags:
+   - install
 
 - name: "Create Karaf system user"
   user:
@@ -47,16 +54,6 @@
   when: not karaf_new_install_dir_created.stat.exists
   tags:
     - install
-
-- name: "Stop Karaf service if running"
-  service:
-    name: "{{ karaf_service_link_name }}"
-    state: stopped
-  ignore_errors: True
-  when: karaf_use_extended_logging and not karaf_new_install_dir_created.stat.exists
-  sudo: yes
-  tags:
-   - install
 
 - name: "Create directory karaf-extended-logging/1.0.0/"
   file:
@@ -79,7 +76,7 @@
     dest: "{{ karaf_home }}/etc/startup.properties"
     state: present
     insertbefore: '^.*/pax-logging-api/.*$'
-    line: '{{ karaf_extended_loggig_module }}'
+    line: 'mvn\:ru.citc.karaf/karaf-extended-logging/1.0.0 = 7'
   when: karaf_use_extended_logging and not karaf_new_install_dir_created.stat.exists
   tags:
     - install
