@@ -76,6 +76,7 @@ karaf_features: []
 #   data_source_files:
 #     - 1.cfg
 #     - 2.cfg
+#   wait_service: '' # The service class or filter
 
 karaf_jre_properties: ''
 #  sun.misc,
