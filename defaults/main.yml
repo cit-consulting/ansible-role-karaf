@@ -69,7 +69,8 @@ karaf_features: []
 #  - name: 'openmq-broker'
 #    version: '4.1.1'
 #    url: 'mvn:ru.citc.osgi/openmq-karaf/4.1.1'
-#    restart_karaf: 'yes' # 'yes' or 'no'
+#    karaf_restart_on_upgrade: 'yes' # 'yes' or 'no'
+#    karaf_clean_cache_on_upgrade: 'yes' # 'yes' or 'no'
 #    conf_files:
 #      - 1.cfg
 #      - 2.cfg

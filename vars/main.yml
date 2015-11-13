@@ -42,5 +42,4 @@ karaf_base_configuration:
       - { prop: "rmiServerHost", value: "{{ karaf_rmi_server_host }}" }
       - { prop: "jmxRealm", value: "{{ karaf_rmi_jmx_realm }}" }
 
-
-karaf_delete_data: 'no'
+karaf_clean_all: 'no'

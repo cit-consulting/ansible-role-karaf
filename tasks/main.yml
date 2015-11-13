@@ -5,7 +5,7 @@
 - include: "configure-karaf.yml"
 
 - include: "delete-data.yml"
-  when: karaf_delete_data == "yes"
+  when: karaf_clean_all == "yes"
 
 - include: "install-features.yml"
   when: karaf_features
