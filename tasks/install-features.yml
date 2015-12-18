@@ -116,7 +116,7 @@
     mode: 0755
   register: karaf_clean_cache
   with_items: karaf_features
-  when: item.karaf_clean_cache is defined and item.karaf_clean_cache == "yes" and not karaf_new_feature_install.stdout|search("No deployment change") and karaf_find_feature_to_uninstall.stdout|search(item.name)
+  when: item.karaf_clean_cache_on_upgrade is defined and item.karaf_clean_cache_on_upgrade == "yes" and not karaf_new_feature_install.stdout|search("No deployment change") and karaf_find_feature_to_uninstall.stdout|search(item.name)
   tags:
     - install-features
 
@@ -153,6 +153,13 @@
   sudo_user: "{{ karaf_os_user_name }}"
   environment:
     JAVA_HOME: "{{ karaf_java_home }}"
+  when: not karaf_new_feature_install.stdout|search("No deployment change")
+  tags:
+    - install-features
+
+- name: "Pause for Install features"
+  pause:
+    seconds: '5'
   when: not karaf_new_feature_install.stdout|search("No deployment change")
   tags:
     - install-features
