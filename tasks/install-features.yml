@@ -6,7 +6,7 @@
 
 - name: "Install features: Find the full features install list without versions"
   set_fact:
-    full_features_install_list_without_versions: '{{ full_features_install_list_with_versions | regex_replace("(/\S+)\s", "|") | regex_replace("(^.*)(.$)", "\\1") }}'
+    full_features_install_list_without_versions: '{{ full_features_install_list_with_versions | regex_replace("(/\S+)\s", "|") | regex_replace("(^.*)(.$)", "\1") }}'
 
 - name: "Install features: Preparation the full features install list for grep"
   set_fact:
@@ -19,7 +19,6 @@
     state: touch
     mode: 0755
   register: karaf_cache_cleaned
-  with_items: karaf_features
   when: karaf_clean_cache == "yes"
   tags:
     - install-features
@@ -90,12 +89,16 @@
   tags:
     - install-features
 
+- name: "Install features: has features pending changes"
+  set_fact:
+    karaf_has_features_pending_changes: not karaf_new_feature_install.stdout|search("No deployment change")
+
 - name: "Install features: Check features install"
   sudo: yes
   shell: '{{ karaf_connect_to_local_Karaf_instance }} "{{ full_features_install_list_for_grep }}" >/tmp/feature.txt'
   environment:
     JAVA_HOME: "{{ karaf_java_home }}"
-  when: not karaf_new_feature_install.stdout|search("No deployment change")
+  when: karaf_has_features_pending_changes
   changed_when: false
   tags:
     - install-features
@@ -105,7 +108,7 @@
     dest: "/tmp/feature.txt"
     regexp: '(?m)^(\S+)\s+(\S+)(.*)'
     replace: '\1/\2'
-  when: not karaf_new_feature_install.stdout|search("No deployment change")
+  when: karaf_has_features_pending_changes
   changed_when: false
   tags:
     - install-features
@@ -116,7 +119,7 @@
     regexp: '{{ item.name }}/{{ item.version }}'
     state: absent
   with_items: karaf_features
-  when: not karaf_new_feature_install.stdout|search("No deployment change")
+  when: karaf_has_features_pending_changes
   changed_when: false
   tags:
     - install-features
@@ -124,7 +127,7 @@
 - name: "Get features list for uninstall"
   shell: 'cat /tmp/feature.txt'
   register: karaf_find_feature_to_uninstall
-  when: not karaf_new_feature_install.stdout|search("No deployment change")
+  when: karaf_has_features_pending_changes
   changed_when: false
   tags:
     - install-features
@@ -137,7 +140,10 @@
     mode: 0755
   register: karaf_cache_cleaned_on_upgrade
   with_items: karaf_features
-  when: not karaf_cache_cleaned.changed and item.karaf_clean_cache_on_upgrade is defined and item.karaf_clean_cache_on_upgrade == "yes" and not karaf_new_feature_install.stdout|search("No deployment change") and karaf_find_feature_to_uninstall.stdout|search(item.name)
+  when: ((karaf_has_features_pending_changes and karaf_find_feature_to_uninstall.stdout is defined and
+         karaf_find_feature_to_uninstall.stdout != "" and karaf_find_feature_to_uninstall.stdout|search(item.name) and
+          item.karaf_clean_cache_on_upgrade is defined and item.karaf_clean_cache_on_upgrade == "yes") and
+           (karaf_cache_cleaned is not defined or not karaf_cache_cleaned.changed))
   tags:
     - install-features
 
@@ -174,14 +180,14 @@
   sudo_user: "{{ karaf_os_user_name }}"
   environment:
     JAVA_HOME: "{{ karaf_java_home }}"
-  when: not karaf_new_feature_install.stdout|search("No deployment change")
+  when: karaf_has_features_pending_changes
   tags:
     - install-features
 
 - name: "Pause for Install features"
   pause:
     seconds: '5'
-  when: not karaf_new_feature_install.stdout|search("No deployment change")
+  when: karaf_has_features_pending_changes
   tags:
     - install-features
 
@@ -191,7 +197,7 @@
   sudo_user: "{{ karaf_os_user_name }}"
   environment:
     JAVA_HOME: "{{ karaf_java_home }}"
-  when: item.wait_service is defined and not karaf_new_feature_install.stdout|search("No deployment change")
+  when: '{{ item.wait_service is defined and karaf_has_features_pending_changes }}'
   with_items: karaf_features
   tags:
     - install-features
@@ -201,6 +207,11 @@
   action: shell echo "Restart Karaf"
   notify: Karaf configuration changed
   with_items: karaf_features
-  when: item.karaf_restart_on_upgrade is defined and item.karaf_restart_on_upgrade == "yes" and not karaf_new_feature_install.stdout|search("No deployment change") and karaf_find_feature_to_uninstall.stdout|search(item.name)
+  when: ((karaf_has_features_pending_changes and karaf_find_feature_to_uninstall.stdout is defined and
+         karaf_find_feature_to_uninstall.stdout != "" and karaf_find_feature_to_uninstall.stdout|search(item.name) and
+          item.karaf_restart_on_upgrade is defined and item.karaf_restart_on_upgrade == "yes") or
+           (karaf_has_features_pending_changes and karaf_find_feature_to_uninstall.stdout is defined and
+            karaf_find_feature_to_uninstall.stdout == "" and item.karaf_restart_on_upgrade is defined and
+             item.karaf_restart_on_upgrade == "yes"))
   tags:
     - install-features
