@@ -38,6 +38,12 @@ karaf_use_extended_logging: true
 karaf_log_file_size: "9MB"
 karaf_log_file_roll_count: 100
 
+karaf_log_gelf_enabled: true
+karaf_log_gelf_proto: "tcp"
+karaf_log_gelf_host: ''
+karaf_log_gelf_port: "12201"
+karaf_log_gelf_additionalFields: "{}"
+
 #karaf_osgi_framework: "felix" # equinox
 
 karaf_downoal_url: "http://www.eu.apache.org/dist/karaf/{{ karaf_distr_version }}/{{ karaf_distr_name }}.{{ karaf_archive_type }}"

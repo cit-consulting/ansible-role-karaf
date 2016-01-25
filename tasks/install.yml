@@ -88,7 +88,44 @@
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items: karaf_logging_properties
-  when: karaf_use_extended_logging and not karaf_new_install_dir_created.stat.exists
+  when: karaf_use_extended_logging
+  tags:
+    - install
+
+- name: "Create directory gelfj/1.1.13/"
+  file:
+    path: "{{ karaf_home }}/system/org/graylog2/gelfj/1.1.13"
+    state: directory
+  when: karaf_log_gelf_enabled
+  tags:
+    - install
+
+- name: "Upload Karaf gelfj logging module"
+  copy:
+    src: "gelfj-1.1.13.jar"
+    dest: "{{ karaf_home }}/system/org/graylog2/gelfj/1.1.13/gelfj-1.1.13.jar"
+  when: karaf_log_gelf_enabled
+  tags:
+    - install
+
+- name: "Configure gelfj logging in startup.properties"
+  lineinfile:
+    dest: "{{ karaf_home }}/etc/startup.properties"
+    state: present
+    insertbefore: '^.*/karaf-extended-logging/.*$'
+    line: 'mvn\:org.graylog2/gelfj/1.1.13 = 7'
+  when: karaf_log_gelf_enabled
+  tags:
+    - install
+
+- name: "Configure gelfj logging in org.ops4j.pax.logging.cfg"
+  lineinfile:
+    dest: "{{karaf_home }}/etc/org.ops4j.pax.logging.cfg"
+    state: present
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items: karaf_log_gelf_properties
+  when: karaf_log_gelf_enabled and karaf_log_gelf_host != ''
   tags:
     - install
 
