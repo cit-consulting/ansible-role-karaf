@@ -34,6 +34,9 @@ karaf_wrapper_conf1:
   - { regexp: "^#?set.default.JAVA_HOME.*$", line: "set.default.JAVA_HOME={{ karaf_java_home }}" }
   - { regexp: "^#?wrapper.java.initmemory.*$", line: "wrapper.java.initmemory={{ karaf_java_initial_memory }}" }
   - { regexp: "^#?wrapper.java.maxmemory.*$", line: "wrapper.java.maxmemory={{ karaf_java_max_memory }}" }
+  - { regexp: "^#?wrapper.startup.timeout.*$", line: "wrapper.startup.timeout={{ karaf_wrapper_startup_timeout }}" }
+  - { regexp: "^#?wrapper.ping.timeout.*$", line: "wrapper.ping.timeout={{ karaf_wrapper_ping_timeout }}" }
+  - { regexp: "^#?wrapper.cpu.timeout.*$", line: "wrapper.cpu.timeout={{ karaf_wrapper_cpu_timeout }}" }
 
 karaf_wrapper_default_jvm_options:
   - "-Dfile.encoding=UTF-8"

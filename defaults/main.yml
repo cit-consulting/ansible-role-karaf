@@ -100,3 +100,7 @@ karaf_time_pause_to_ferst_start: '20' # 20-seconds
 karaf_timeout_to_wait_service: '15000' # 15-seconds
 
 karaf_path_to_data_backup: "/opt/data-backup"
+
+karaf_wrapper_startup_timeout: '60'
+karaf_wrapper_ping_timeout: '120'
+karaf_wrapper_cpu_timeout: '30'
