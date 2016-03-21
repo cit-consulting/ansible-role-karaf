@@ -18,7 +18,7 @@ karaf_log_gelf_properties:
   - { regexp: "^# Define the graylog2 destination.*$", line: "# Define the graylog2 destination" }
   - { regexp: "^log4j.appender.async=.*$", line: "log4j.appender.async=org.apache.log4j.AsyncAppender" }
   - { regexp: "^log4j.appender.async.blocking.*$", line: "log4j.appender.async.blocking=false" }
-  - { regexp: "^log4j.appender.async.bufferSize.*$", line: "log4j.appender.async.bufferSize=512" }
+  - { regexp: "^log4j.appender.async.bufferSize.*$", line: "log4j.appender.async.bufferSize=20000" }
   - { regexp: "^log4j.appender.async.appenders.*$", line: "log4j.appender.async.appenders=graylog2" }
   - { regexp: "^log4j.appender.graylog2=.*$", line: "log4j.appender.graylog2=org.graylog2.log.GelfAppender" }
   - { regexp: "^log4j.appender.graylog2.graylogHost.*$", line: "log4j.appender.graylog2.graylogHost={{ karaf_log_gelf_proto }}:{{ karaf_log_gelf_host }}" }

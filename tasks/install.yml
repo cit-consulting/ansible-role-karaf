@@ -59,7 +59,7 @@
   file:
     path: "{{ karaf_home }}/system/ru/citc/karaf/karaf-extended-logging/1.0.0"
     state: directory
-  when: karaf_use_extended_logging and not karaf_new_install_dir_created.stat.exists
+  when: karaf_use_extended_logging
   tags:
     - install
 
@@ -67,17 +67,7 @@
   copy:
     src: "karaf-extended-logging-1.0.0.jar"
     dest: "{{ karaf_home }}/system/ru/citc/karaf/karaf-extended-logging/1.0.0/karaf-extended-logging-1.0.0.jar"
-  when: karaf_use_extended_logging and not karaf_new_install_dir_created.stat.exists
-  tags:
-    - install
-
-- name: "Configure extended logging in startup.properties"
-  lineinfile:
-    dest: "{{ karaf_home }}/etc/startup.properties"
-    state: present
-    insertbefore: '^.*/pax-logging-api/.*$'
-    line: 'mvn\:ru.citc.karaf/karaf-extended-logging/1.0.0 = 7'
-  when: karaf_use_extended_logging and not karaf_new_install_dir_created.stat.exists
+  when: karaf_use_extended_logging
   tags:
     - install
 
@@ -92,9 +82,9 @@
   tags:
     - install
 
-- name: "Create directory gelfj/1.1.13/"
+- name: "Create directory gelfj/1.1.14/"
   file:
-    path: "{{ karaf_home }}/system/org/graylog2/gelfj/1.1.13"
+    path: "{{ karaf_home }}/system/org/graylog2/gelfj/1.1.14"
     state: directory
   when: karaf_log_gelf_enabled
   tags:
@@ -102,19 +92,22 @@
 
 - name: "Upload Karaf gelfj logging module"
   copy:
-    src: "gelfj-1.1.13.jar"
-    dest: "{{ karaf_home }}/system/org/graylog2/gelfj/1.1.13/gelfj-1.1.13.jar"
+    src: "gelfj-1.1.14.jar"
+    dest: "{{ karaf_home }}/system/org/graylog2/gelfj/1.1.14/gelfj-1.1.14.jar"
   when: karaf_log_gelf_enabled
   tags:
     - install
 
-- name: "Configure gelfj logging in startup.properties"
+- name: "Configure extended logging in startup.properties"
   lineinfile:
     dest: "{{ karaf_home }}/etc/startup.properties"
     state: present
-    insertbefore: '^.*/karaf-extended-logging/.*$'
-    line: 'mvn\:org.graylog2/gelfj/1.1.13 = 7'
-  when: karaf_log_gelf_enabled
+    regexp: '{{ item.1 | replace("mvn\:", "") | regex_replace("/[0-9.]+\w+?\Z", "") }}.*$'
+    line: '{{ item.1 }} = 7'
+  with_indexed_items:
+    - mvn\:ru.citc.karaf/karaf-extended-logging/1.0.0
+    - mvn\:org.graylog2/gelfj/1.1.14
+  when: (karaf_use_extended_logging and item.0 == 0) or (karaf_log_gelf_enabled and item.0 == 1)
   tags:
     - install
 
