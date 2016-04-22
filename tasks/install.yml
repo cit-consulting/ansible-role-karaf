@@ -140,14 +140,25 @@
   tags:
     - install
 
+- name: "Set environment for karaf"
+  lineinfile:
+    dest: "{{karaf_home }}/bin/setenv"
+    state: present
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items: karaf_environment_default_options
+  when: not karaf_wrapper_conf_path_validation.stat.exists
+  tags:
+    - config
+
 - name: "Stop Karaf before first run"
   shell: '{{ karaf_home }}/bin/stop'
   ignore_errors: True
   when: not karaf_wrapper_conf_path_validation.stat.exists
   sudo: yes
   sudo_user: "{{ karaf_os_user_name }}"
-  environment:
-    JAVA_HOME: "{{ karaf_java_home }}"
+#  environment:
+#    JAVA_HOME: "{{ karaf_java_home }}"
   tags:
    - install
 
@@ -181,8 +192,8 @@
   when: not karaf_wrapper_conf_path_validation.stat.exists
   sudo: yes
   sudo_user: "{{ karaf_os_user_name }}"
-  environment:
-    JAVA_HOME: "{{ karaf_java_home }}"
+#  environment:
+#    JAVA_HOME: "{{ karaf_java_home }}"
   tags:
    - install
 
@@ -191,8 +202,8 @@
   when: not karaf_wrapper_conf_path_validation.stat.exists
   sudo: yes
   sudo_user: "{{ karaf_os_user_name }}"
-  environment:
-    JAVA_HOME: "{{ karaf_java_home }}"
+#  environment:
+#    JAVA_HOME: "{{ karaf_java_home }}"
   tags:
    - install
 

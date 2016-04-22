@@ -43,6 +43,11 @@ karaf_wrapper_default_jvm_options:
   - "-XX:MaxPermSize={{ karaf_java_max_perm_memory }}m"
   - "-Djava.io.tmpdir=%KARAF_DATA%/tmp"
 
+karaf_environment_default_options:
+  - { regexp: "export JAVA_HOME.*$", line: 'export JAVA_HOME="{{ karaf_java_home }}"' }
+  - { regexp: "export JAVA_MAX_MEM.*$", line: 'export JAVA_MAX_MEM="{{ karaf_java_max_memory }}"' }
+  - { regexp: "export EXTRA_JAVA_OPTS.*$", line: 'export EXTRA_JAVA_OPTS="-Dfile.encoding=UTF-8 -Djava.io.tmpdir=%KARAF_DATA%/tmp"' }
+
 karaf_base_configuration:
   - file: "custom.properties"
     params:

@@ -67,18 +67,19 @@
   tags:
     - install-features
 
-- name: "Install features: Add features url"
+- name: "Install features: Add features repositories"
   sudo: yes
-  shell: '{{ karaf_connect_to_local_Karaf_instance }} "feature:repo-add {{ item.url }}/xml/features"'
+  shell: '{{ karaf_connect_to_local_Karaf_instance }} "feature:repo-add {% if item.url|d() %} {{ item.url }} {% else %} {{ item.repo }} {{ item.version }} {% endif %}"'
   sudo_user: "{{ karaf_os_user_name }}"
   environment:
     JAVA_HOME: "{{ karaf_java_home }}"
   with_items: karaf_features
+  when: item.url is defined or item.repo is defined
   changed_when: false
   tags:
     - install-features
 
-- name: "Install features: Update features"
+- name: "Install features: Perform a simulation"
   sudo: yes
   shell: '{{ karaf_connect_to_local_Karaf_instance }} "feature:install -t -v {{ full_features_install_list_with_versions }}"'
   sudo_user: "{{ karaf_os_user_name }}"
@@ -164,12 +165,12 @@
 
 - name: "Install features: Add features url for Clean cache on upgrade"
   sudo: yes
-  shell: '{{ karaf_connect_to_local_Karaf_instance }} "feature:repo-add {{ item.url }}/xml/features"'
+  shell: '{{ karaf_connect_to_local_Karaf_instance }} "feature:repo-add {% if item.url|d() %} {{ item.url }} {% else %} {{ item.repo }} {{ item.version }} {% endif %}"'
   sudo_user: "{{ karaf_os_user_name }}"
   environment:
     JAVA_HOME: "{{ karaf_java_home }}"
   with_items: karaf_features
-  when: karaf_cache_cleaned_on_upgrade.changed
+  when: (karaf_cache_cleaned_on_upgrade.changed and (item.url is defined or item.repo is defined))
   changed_when: false
   tags:
     - install-features
