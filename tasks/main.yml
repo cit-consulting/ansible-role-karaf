@@ -3,6 +3,8 @@
 - include: "install.yml"
 - include: "configure-wrapper.yml"
 - include: "configure-karaf.yml"
+- include: "install-jcp.yml"
+  when: karaf_install_jcp == "yes"
 
 - include: "delete-data.yml"
   when: karaf_clean_all == "yes"

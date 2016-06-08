@@ -1,0 +1,124 @@
+---
+
+#TODO check if exists
+- name: "Check installation JCE"
+  sudo: yes
+  lineinfile:
+    dest: "{{ karaf_home }}/lib/ext/jcp-intalled.ver"
+    line: "{{ karaf_jcp_version }}"
+    create: yes
+  register: jcp_install
+  tags:
+    - installJCP
+
+- name: "Create installation JCE directory"
+  sudo: yes
+  file:
+    path: "/tmp/{{ karaf_jcp_version }}"
+    state: directory
+  when: jcp_install.changed
+  ignore_errors: True
+  tags:
+    - installJCP
+
+#TODO errors when differents encoding in filenames (fixed on 2.0.X)
+- name: "Unarchived JCP distribution"
+  sudo: yes
+  unarchive:
+    src: 'tmp/jcp-{{ karaf_jcp_version }}.zip'
+    dest: '/tmp/{{ karaf_jcp_version }}'
+  when: jcp_install.changed
+  ignore_errors: True
+  tags:
+    - installJCP
+
+- name: "Backup java.security"
+  sudo: yes
+  command: 'cp {{ karaf_java_home }}/jre/lib/security/java.security {{ karaf_java_home }}/jre/lib/security/java.security.back'
+  when: jcp_install.changed
+  tags:
+    - installJCP
+
+#TODO work on 2.0.X
+#- name: "Backup java.security"
+#  sudo: yes
+#  copy:
+#    src: '{{ karaf_java_home }}/jre/lib/security/java.security'
+#    dest: '{{ karaf_java_home }}/jre/lib/security/java.security.back'
+#    remote_src: True
+#  when: jcp_install.changed
+#  tags:
+#    - installJCP
+
+- name: "Install JCP"
+  sudo: yes
+  shell: '{{ karaf_java_home }}/bin/java -cp "/tmp/{{ karaf_jcp_version }}/jcp-{{ karaf_jcp_version }}/JCPinst.jar" ru.CryptoPro.Install.VariantTwo -install -verbose
+             {% if karaf_jcp_serial|d() %} -serial "{{ karaf_jcp_serial }}" -company "{{ karaf_jcp_company }}" {% endif %}'
+  when: jcp_install.changed
+  tags:
+    - installJCP
+
+- name: "Copy CryptoPro files"
+  sudo: yes
+  command: 'cp /tmp/{{ karaf_jcp_version }}/jcp-{{ karaf_jcp_version }}/{{ item }} {{ karaf_home }}/lib/ext/{{ item | regex_replace("^.*/(.*)$", "\\1") }}'
+  with_items: karaf_jcp_files
+  when: jcp_install.changed and item is defined
+  tags:
+    - installJCP
+
+#TODO work on 2.0.X
+#- name: "Copy CryptoPro files"
+#  copy:
+#    src: '/tmp/{{ karaf_jcp_version }}/jcp-{{ karaf_jcp_version }}/{{ item }}'
+#    dest: '{{ karaf_home }}/lib/ext/{{ item }}'
+#    remote_src: True
+#  with_items: karaf_jcp_files
+#  when: jcp_install.changed and item is defined
+#  tags:
+#    - installJCP
+
+#TODO work on 2.0.X
+#- name: "Copy CryptoPro dependencies files"
+#  sudo: yes
+#  copy:
+#    src: '/tmp/{{ karaf_jcp_version }}/jcp-{{ karaf_jcp_version }}/dependencies/{{ item }}'
+#    dest: '{{ karaf_home }}/lib/ext/{{ item }}'
+#    remote_src: True
+#  with_items: karaf_jcp_dependencies_files
+#  when: jcp_install.changed and item is defined
+#  tags:
+#    - installJCP
+
+- name: "Restore java.security"
+  sudo: yes
+  command: 'cp {{ karaf_java_home }}/jre/lib/security/java.security.back {{ karaf_java_home }}/jre/lib/security/java.security'
+  when: jcp_install.changed
+  tags:
+    - installJCP
+
+#TODO work on 2.0.X
+#- name: "Restore java.security"
+#  sudo: yes
+#  copy:
+#    src: '{{ karaf_java_home }}/jre/lib/security/java.security.back'
+#    dest: '{{ karaf_java_home }}/jre/lib/security/java.security'
+#    remote_src: True
+#  when: jcp_install.changed
+#  tags:
+#    - installJCP
+
+- name: "Cleanup CryptoPro files"
+  sudo: yes
+  file:
+    path: '{{ karaf_java_home }}/jre/lib/ext/{{ item }}'
+    state: 'absent'
+  with_items: karaf_jcp_files
+  when: jcp_install.changed and item is defined
+  tags:
+    - installJCP
+
+- name: "Restart Karaf for Install JCP"
+  sudo: yes
+  service: name={{ karaf_service_link_name }} enabled=yes state=restarted
+  when: jcp_install.changed
+

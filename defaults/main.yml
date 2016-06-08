@@ -105,3 +105,21 @@ karaf_path_to_data_backup: "/opt/data-backup"
 karaf_wrapper_startup_timeout: '60'
 karaf_wrapper_ping_timeout: '120'
 karaf_wrapper_cpu_timeout: '30'
+
+karaf_install_jcp: 'no' # 'yes' or 'no'
+
+karaf_jcp_files: []
+#  - 'JCP.jar'
+#  - 'JCPControlPane.jar'
+#  - 'asn1rt.jar'
+#  - 'forms_rt.jar'
+#  - 'JCPRevCheck.jar'
+#  - 'JCPRevTools.jar'
+#  - 'JCPxml.jar'
+#  - 'XMLDSigRI.jar'
+#  - 'JCPRequest.jar'
+#  - 'ASN1P.jar'
+#  - 'JCryptoP.jar'
+#  - 'CAdES.jar'
+#  - 'dependencies/bcpkix-jdk15on-1.50.jar'
+#  - 'dependencies/bcprov-jdk15on-1.50.jar'
