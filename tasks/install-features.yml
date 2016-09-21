@@ -6,7 +6,7 @@
 
 - name: "Install features: Find the full features install list without versions"
   set_fact:
-    full_features_install_list_without_versions: '{{ full_features_install_list_with_versions | regex_replace("(/\S+)\s", "|") | regex_replace("(^.*)(.$)", "\1") }}'
+    full_features_install_list_without_versions: '{{ full_features_install_list_with_versions | regex_replace("(/\S+)\s", "|") }}'
 
 - name: "Install features: Preparation the full features install list for grep"
   set_fact:
