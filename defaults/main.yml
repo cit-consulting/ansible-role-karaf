@@ -68,7 +68,7 @@ karaf_wrapper_additional_jvm_options: []
 
 karaf_wrapper_conf_last_num: '9'
 
-karaf_connect_to_local_Karaf_instance: '{{ karaf_home }}/bin/client -u {{ karaf_admin_user }} -h 127.0.0.1 -a {{ karaf_ssh_port }}'
+karaf_connect_to_local_Karaf_instance: '{{ karaf_home }}/bin/client {% if karaf_distr_version|version_compare("4.0.6", "<") %} -u {{ karaf_admin_user }}{% endif %} -h 127.0.0.1 -a {{ karaf_ssh_port }}'
 
 karaf_features: []
 #  - name: 'openmq-broker'
