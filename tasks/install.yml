@@ -18,6 +18,18 @@
   tags:
     - install
 
+- name: "Get Karaf user home"
+  shell: 'getent passwd "{{ karaf_os_user_name }}" | cut -d: -f6'
+  changed_when: false
+  register: karaf_os_user_home
+  sudo: yes
+  tags:
+    - install
+
+- name: "Check Karaf user home"
+  set_fact:
+    karaf_os_user_home_changed: "{{ (karaf_os_user_home.stdout != karaf_install_dir + '/' + karaf_distr_name) | bool}}"
+
 - name: "Create installation directory"
   file:
     path: "{{ karaf_install_dir }}/{{ karaf_distr_name }}"
@@ -30,7 +42,7 @@
     name: "{{ karaf_service_link_name }}"
     state: stopped
   ignore_errors: True
-  when: not karaf_new_install_dir_created.stat.exists
+  when: not karaf_new_install_dir_created.stat.exists or karaf_os_user_home_changed
   sudo: yes
   tags:
    - install
@@ -42,7 +54,7 @@
     system: yes
     state: present
   sudo: yes
-  when: not karaf_new_install_dir_created.stat.exists
+  when: not karaf_new_install_dir_created.stat.exists or karaf_os_user_home_changed
   tags:
     - install
 
@@ -122,9 +134,10 @@
   tags:
     - install
 
+#TODO execute always (use module)
 - name: "Anjust filesystem access mode on Karaf dir"
   shell: chown -R {{ karaf_os_user_name }}:{{ karaf_os_user_name }} {{ karaf_install_dir }}/{{ karaf_distr_name }}
-  when: not karaf_new_install_dir_created.stat.exists
+  when: (not karaf_new_install_dir_created.stat.exists or karaf_os_user_home_changed)
   sudo: yes
   tags:
     - install
@@ -147,7 +160,6 @@
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items: karaf_environment_default_options
-  when: not karaf_wrapper_conf_path_validation.stat.exists
   tags:
     - config
 
@@ -214,7 +226,6 @@
     regexp: "^#?RUN_AS_USER.*$"
     line: "RUN_AS_USER={{ karaf_os_user_name }}"
   sudo: yes
-  when: not karaf_wrapper_conf_path_validation.stat.exists
   tags:
     - install
 
@@ -223,7 +234,6 @@
     src: "{{karaf_home }}/bin/{{ karaf_service_link_name }}"
     dest: "/etc/init.d/{{ karaf_service_link_name }}"
     state: link
-  when: not karaf_wrapper_conf_path_validation.stat.exists
   tags:
    - install
 
@@ -235,7 +245,7 @@
     name: "{{ karaf_service_link_name }}"
     enabled: yes
     state: started
-  when: not karaf_wrapper_conf_path_validation.stat.exists
+  when: not karaf_wrapper_conf_path_validation.stat.exists or karaf_os_user_home_changed
   sudo: yes
   tags:
     - install
