@@ -69,3 +69,4 @@ karaf_base_configuration:
 
 karaf_clean_all: 'no'
 karaf_clean_cache: 'no'
+karaf_delete_all: 'no'

@@ -1,0 +1,25 @@
+---
+
+- name: "Delete All: Check karaf install dyrectory is not empty"
+  stat:
+    path: "{{ karaf_install_dir }}/{{ karaf_distr_name }}"
+  register: karaf_delete_all_dir_created
+  tags:
+    - delete-all
+
+- name: "Delete All: Stop Karaf service"
+  service:
+    name: '{{ karaf_service_link_name }}'
+    state: stopped
+  ignore_errors: True
+  sudo: yes
+  when: karaf_delete_all_dir_created.stat.exists
+  tags:
+    - delete-all
+
+- name: "Delete All: Move karaf directory"
+  shell: 'mv -f {{ karaf_install_dir }}/{{ karaf_distr_name }} {{ karaf_install_dir }}/{{ karaf_distr_name }}-$(date +%F_%T)'
+  sudo: yes
+  when: karaf_delete_all_dir_created.stat.exists
+  tags:
+    - delete-all

@@ -1,5 +1,8 @@
 ---
 
+- include: "delete-all.yml"
+  when: karaf_delete_all == "yes"
+
 - include: "install.yml"
 - include: "configure-wrapper.yml"
 - include: "configure-karaf.yml"
