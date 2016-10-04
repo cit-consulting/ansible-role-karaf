@@ -210,7 +210,16 @@
   sudo_user: "{{ karaf_os_user_name }}"
   environment:
     JAVA_HOME: "{{ karaf_java_home }}"
-  when: item.changed
+  when: (item.changed and item.item[0].karaf_on_config_change is defined and item.item[0].karaf_on_config_change == "feature")
+  with_items: karaf_add_features_configs.results
+  tags:
+    - install-features
+
+- name: "Install feature: Restart Karaf to changed feature configs"
+  sudo: yes
+  action: shell echo "Restart Karaf to changed feature configs"
+  notify: Karaf configuration changed
+  when: (item.changed and item.item[0].karaf_on_config_change is defined and item.item[0].karaf_on_config_change == "karaf")
   with_items: karaf_add_features_configs.results
   tags:
     - install-features

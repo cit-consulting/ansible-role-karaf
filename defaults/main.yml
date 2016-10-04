@@ -76,6 +76,7 @@ karaf_features: []
 #    url: 'mvn:ru.citc.osgi/openmq-karaf/4.1.1'
 #    repo: 'openmq'
 #    karaf_restart_on_upgrade: 'yes' # 'yes' or 'no'
+#    karaf_on_config_change: 'none' # 'none', 'feature' or 'karaf'
 #    karaf_clean_cache_on_upgrade: 'yes' # 'yes' or 'no'
 #    conf_files:
 #      - 1.cfg
