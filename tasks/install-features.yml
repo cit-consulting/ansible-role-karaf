@@ -49,6 +49,7 @@
   with_subelements:
     - karaf_features
     - conf_files
+  register: karaf_add_features_configs
   tags:
     - install-features
 
@@ -200,6 +201,17 @@
     JAVA_HOME: "{{ karaf_java_home }}"
   when: '{{ item.wait_service is defined and karaf_has_features_pending_changes }}'
   with_items: karaf_features
+  tags:
+    - install-features
+
+- name: "Install feature: Restart feature to changed feature configs"
+  sudo: yes
+  shell: '{{ karaf_connect_to_local_Karaf_instance }} "feature:restart {{ item.item[0].name  }}/{{ item.item[0].version }}"'
+  sudo_user: "{{ karaf_os_user_name }}"
+  environment:
+    JAVA_HOME: "{{ karaf_java_home }}"
+  when: item.changed
+  with_items: karaf_add_features_configs.results
   tags:
     - install-features
 

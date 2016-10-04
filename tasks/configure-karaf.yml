@@ -65,3 +65,11 @@
   notify: Karaf configuration changed
   tags:
     - config
+
+- name: 'Configure shell'
+  lineinfile:
+    dest: "{{ karaf_home }}/etc/shell.init.script"
+    line: 'feature:restart = { feature:stop $args; feature:start $args; };'
+  notify: Karaf configuration changed
+  tags:
+    - config
