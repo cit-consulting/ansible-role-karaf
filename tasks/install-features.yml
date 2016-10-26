@@ -82,7 +82,7 @@
 
 - name: "Install features: Perform a simulation"
   sudo: yes
-  shell: '{{ karaf_connect_to_local_Karaf_instance }} "feature:install -t -v {{ full_features_install_list_with_versions }}"'
+    shell: '{{ karaf_connect_to_local_Karaf_instance }} "feature:install -t {{ full_features_install_list_with_versions }} ; log:display -n 6 -l INFO org.apache.karaf.features.internal"'
   sudo_user: "{{ karaf_os_user_name }}"
   environment:
     JAVA_HOME: "{{ karaf_java_home }}"
