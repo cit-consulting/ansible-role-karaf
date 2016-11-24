@@ -6,7 +6,9 @@
     state: present
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
-  with_items: karaf_wrapper_conf1
+  with_flattened:
+    - karaf_wrapper_conf1
+    - karaf_wrapper_custom_conf
   notify: Karaf configuration changed
   tags:
     - config

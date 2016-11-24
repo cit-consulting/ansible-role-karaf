@@ -124,3 +124,5 @@ karaf_jcp_files: []
 #  - 'CAdES.jar'
 #  - 'dependencies/bcpkix-jdk15on-1.50.jar'
 #  - 'dependencies/bcprov-jdk15on-1.50.jar'
+
+karaf_wrapper_custom_conf: []
