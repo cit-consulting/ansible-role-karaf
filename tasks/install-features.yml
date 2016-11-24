@@ -237,3 +237,5 @@
              item.karaf_restart_on_upgrade == "yes"))
   tags:
     - install-features
+
+karaf_wrapper_custom_conf: []
