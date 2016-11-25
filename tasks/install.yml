@@ -238,6 +238,34 @@
     state: link
   tags:
    - install
+   
+#TODO remove Ansible 2.0
+- name: "Detect init system"
+  shell: 'cat /proc/1/comm'
+  sudo: yes
+  register: karaf_init_proc_cmd
+  when: ansible_service_mgr is not defined
+  changed_when: false
+  tags:
+   - install
+
+#TODO remove Ansible 2.0
+- name: "Register init system fact"
+  set_fact:
+    ansible_service_mgr: '{{ karaf_init_proc_cmd.stdout }}'
+  register: karaf_init_proc_cmd
+  when: ansible_service_mgr is not defined
+  tags:
+   - install
+
+- name: "Put systemd service unit"
+  file:
+    src: "{{karaf_home }}/bin/{{ karaf_service_name }}.service"
+    dest: "/etc/systemd/system/{{ karaf_service_link_name }}.service"
+    state: link
+  when: ansible_service_mgr == 'systemd'
+  tags:
+   - install
 
 - include: "configure-wrapper.yml"
   when: not karaf_wrapper_conf_path_validation.stat.exists
