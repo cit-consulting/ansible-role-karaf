@@ -2,6 +2,6 @@
 
 - name: "Karaf configuration changed"
   service:
-    name: '{{ karaf_service_link_name }}'
+    name: '{{ karaf_service_name }}'
     state: restarted
   sudo: yes

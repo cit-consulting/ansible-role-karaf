@@ -39,7 +39,7 @@
 
 - name: "Stop Karaf service if running"
   service:
-    name: "{{ karaf_service_link_name }}"
+    name: "{{ karaf_service_name }}"
     state: stopped
   ignore_errors: True
   when: not karaf_new_install_dir_created.stat.exists or karaf_os_user_home_changed | bool
@@ -171,8 +171,6 @@
   when: not karaf_wrapper_conf_path_validation.stat.exists
   sudo: yes
   sudo_user: "{{ karaf_os_user_name }}"
-#  environment:
-#    JAVA_HOME: "{{ karaf_java_home }}"
   tags:
    - install
 
@@ -206,8 +204,6 @@
   when: not karaf_wrapper_conf_path_validation.stat.exists
   sudo: yes
   sudo_user: "{{ karaf_os_user_name }}"
-#  environment:
-#    JAVA_HOME: "{{ karaf_java_home }}"
   tags:
    - install
 
@@ -216,8 +212,6 @@
   when: not karaf_wrapper_conf_path_validation.stat.exists
   sudo: yes
   sudo_user: "{{ karaf_os_user_name }}"
-#  environment:
-#    JAVA_HOME: "{{ karaf_java_home }}"
   tags:
    - install
 
@@ -231,14 +225,6 @@
   tags:
     - install
 
-- name: "Create service simlink"
-  file:
-    src: "{{karaf_home }}/bin/{{ karaf_service_link_name }}"
-    dest: "/etc/init.d/{{ karaf_service_link_name }}"
-    state: link
-  tags:
-   - install
-   
 #TODO remove Ansible 2.0
 - name: "Detect init system"
   shell: 'cat /proc/1/comm'
@@ -258,24 +244,50 @@
   tags:
    - install
 
-- name: "Put systemd service unit"
+- name: "Create service simlink"
   file:
-    src: "{{karaf_home }}/bin/{{ karaf_service_name }}.service"
-    dest: "/etc/systemd/system/{{ karaf_service_link_name }}.service"
+    src: "{{karaf_home }}/bin/{{ karaf_service_link_name }}"
+    dest: "/etc/init.d/{{ karaf_service_name }}"
     state: link
-  when: ansible_service_mgr is defined and ansible_service_mgr == 'systemd' and ansible_lsb.major_release|int >= 6
+  when: ansible_service_mgr is defined and ansible_service_mgr != 'systemd' or ansible_lsb.major_release|int < 6
   tags:
    - install
 
 - include: "configure-wrapper.yml"
   when: not karaf_wrapper_conf_path_validation.stat.exists
 
-- name: "Register and start service"
+- name: "Unregister Karaf service on Karaf home changed"
   service:
-    name: "{{ karaf_service_link_name }}"
+    name: "{{ karaf_service_name }}"
+    enabled: no
+  sudo: yes
+  when: karaf_os_user_home_changed | bool
+  ignore_errors: True
+  tags:
+    - install
+
+- name: "Patch wrapper systemd unit"
+  lineinfile:
+    dest: "{{ karaf_home }}/bin/{{ karaf_service_name }}.service"
+    state: present
+    regexp: "Alias\\s*="
+    line: "Alias={{ karaf_service_name }}.service"
+  when: ansible_service_mgr is defined and ansible_service_mgr == 'systemd' and ansible_lsb.major_release|int >= 6
+
+- name: "Register Karaf service"
+  service:
+    name: "{% if ansible_service_mgr is defined and ansible_service_mgr == 'systemd' %}{{ karaf_home }}/bin/{{ karaf_service_name }}.service{% else %}{{ karaf_service_name }}{% endif %}"
     enabled: yes
+  sudo: yes
+  register: karaf_service_registered
+  tags:
+    - install
+
+- name: "Start Karaf service"
+  service:
+    name: "{{ karaf_service_name }}"
     state: started
-  when: not karaf_wrapper_conf_path_validation.stat.exists or karaf_os_user_home_changed | bool
+  when: karaf_service_registered.changed
   sudo: yes
   tags:
     - install

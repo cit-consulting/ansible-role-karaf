@@ -2,7 +2,7 @@
 
 - name: "Delete Data: Stop Karaf service"
   service:
-    name: '{{ karaf_service_link_name }}'
+    name: '{{ karaf_service_name }}'
     state: stopped
   ignore_errors: True
   sudo: yes
@@ -24,7 +24,7 @@
 
 - name: "Delete Data: Start Karaf service"
   service:
-    name: '{{ karaf_service_link_name }}'
+    name: '{{ karaf_service_name }}'
     state: started
   sudo: yes
   tags:
