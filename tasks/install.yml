@@ -230,7 +230,7 @@
   shell: 'cat /proc/1/comm'
   sudo: yes
   register: karaf_init_proc_cmd
-  when: ansible_service_mgr is not defined and ansible_lsb.major_release|int >= 6
+  when: ansible_service_mgr is not defined and ansible_distribution_major_version|int >= 6
   changed_when: false
   tags:
    - install
@@ -240,7 +240,7 @@
   set_fact:
     ansible_service_mgr: '{{ karaf_init_proc_cmd.stdout }}'
   register: karaf_init_proc_cmd
-  when: ansible_service_mgr is not defined and ansible_lsb.major_release|int >= 6
+  when: ansible_service_mgr is not defined and ansible_distribution_major_version|int >= 6
   tags:
    - install
 
@@ -249,7 +249,7 @@
     src: "{{karaf_home }}/bin/{{ karaf_service_link_name }}"
     dest: "/etc/init.d/{{ karaf_service_name }}"
     state: link
-  when: ansible_service_mgr is defined and ansible_service_mgr != 'systemd' or ansible_lsb.major_release|int < 6
+  when: ansible_service_mgr is defined and ansible_service_mgr != 'systemd' or ansible_distribution_major_version|int < 6
   tags:
    - install
 
@@ -272,7 +272,7 @@
     state: present
     regexp: "Alias\\s*="
     line: "Alias={{ karaf_service_name }}.service"
-  when: ansible_service_mgr is defined and ansible_service_mgr == 'systemd' and ansible_lsb.major_release|int >= 6
+  when: ansible_service_mgr is defined and ansible_service_mgr == 'systemd' and ansible_distribution_major_version|int >= 6
 
 - name: "Register Karaf service"
   service:
