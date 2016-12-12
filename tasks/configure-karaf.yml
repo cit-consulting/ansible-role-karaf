@@ -7,7 +7,7 @@
     regexp: "^#?{{ item.1.prop }}.*$"
     line: "{{ item.1.prop }} = {{ item.1.value }}"
   with_subelements:
-    - karaf_base_configuration
+    - "{{ karaf_base_configuration }}"
     - params
   when: item.1.value is defined and item.1.value != '_UNDEFINED_'
   notify: Karaf configuration changed
@@ -25,7 +25,7 @@
     mode: 0644
     create: yes
   with_subelements:
-    - karaf_custom_configuration
+    - "{{ karaf_custom_configuration }}"
     - params
   when: item.1.value is defined and item.1.value != '_UNDEFINED_'
   notify: Karaf configuration changed
@@ -38,7 +38,7 @@
     regexp: '^#?[ \t]*{{ item.1.prop }}([ \t\w\d:/@\.=,\-]+(\\\n\r?)?)+'
     replace: "{{ item.1.prop }} = {{ item.1.value }}"
   with_subelements:
-    - karaf_multiline_custom_configuration
+    - "{{ karaf_multiline_custom_configuration }}"
     - params
   when: item.1.value is defined and item.1.value != '_UNDEFINED_'
   notify: Karaf configuration changed
@@ -60,7 +60,7 @@
     dest: "{{ karaf_home }}/etc/jre.properties"
     regexp: '(.*javax.xml.validation).*([ \t\w\d:/@\.=,\-])'
     replace: ' {{ item.prop }};{{ item.value }}, '
-  with_items: karaf_custom_jre_properties
+  with_items: "{{ karaf_custom_jre_properties }}"
   when: item.value is defined and item.value != '_UNDEFINED_'
   notify: Karaf configuration changed
   tags:

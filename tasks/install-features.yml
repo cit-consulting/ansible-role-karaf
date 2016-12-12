@@ -47,7 +47,7 @@
     mode: 0644
     backup: yes
   with_subelements:
-    - karaf_features
+    - "{{ karaf_features }}"
     - conf_files
   register: karaf_features_configs_changed
   tags:
@@ -93,7 +93,7 @@
     dest: "/tmp/feature.txt"
     regexp: '{{ item.name }}/{{ item.version }}'
     state: absent
-  with_items: karaf_features
+  with_items: "{{ karaf_features }}"
   when: karaf_has_features_pending_changes
   changed_when: false
   tags:
@@ -114,7 +114,7 @@
     state: touch
     mode: 0755
   register: karaf_cache_cleaned_on_upgrade
-  with_items: karaf_features
+  with_items: "{{ karaf_features }}"
   when: ((karaf_has_features_pending_changes and karaf_find_feature_to_uninstall.stdout is defined and
          karaf_find_feature_to_uninstall.stdout != "" and karaf_find_feature_to_uninstall.stdout|search(item.name) and
           item.karaf_clean_cache_on_upgrade is defined and item.karaf_clean_cache_on_upgrade == "yes") and
@@ -143,7 +143,7 @@
   sudo_user: "{{ karaf_os_user_name }}"
   environment:
     JAVA_HOME: "{{ karaf_java_home }}"
-  with_items: karaf_features
+  with_items: "{{ karaf_features }}"
   when: (karaf_cache_cleaned_on_upgrade.changed and (item.url is defined or item.repo is defined))
   changed_when: false
   tags:
@@ -173,7 +173,7 @@
   environment:
     JAVA_HOME: "{{ karaf_java_home }}"
   when: '{{ item.wait_service is defined and karaf_has_features_pending_changes }}'
-  with_items: karaf_features
+  with_items: "{{ karaf_features }}"
   tags:
     - install-features
 
@@ -184,7 +184,7 @@
   environment:
     JAVA_HOME: "{{ karaf_java_home }}"
   when: (item.changed and item.item[0].karaf_on_config_change is defined and item.item[0].karaf_on_config_change == "feature")
-  with_items: karaf_add_features_configs.results
+  with_items: karaf_features_configs_changed.results
   tags:
     - install-features
 
@@ -193,7 +193,7 @@
   action: shell echo "Restart Karaf to changed feature configs"
   notify: Karaf configuration changed
   when: (item.changed and item.item[0].karaf_on_config_change is defined and item.item[0].karaf_on_config_change == "karaf")
-  with_items: karaf_add_features_configs.results
+  with_items: karaf_features_configs_changed.results
   tags:
     - install-features
 
@@ -201,7 +201,7 @@
   sudo: yes
   action: shell echo "Restart Karaf"
   notify: Karaf configuration changed
-  with_items: karaf_features
+  with_items: "{{ karaf_features }}"
   when: ((karaf_has_features_pending_changes and karaf_find_feature_to_uninstall.stdout is defined and
          karaf_find_feature_to_uninstall.stdout != "" and karaf_find_feature_to_uninstall.stdout|search(item.name) and
           item.karaf_restart_on_upgrade is defined and item.karaf_restart_on_upgrade == "yes") or

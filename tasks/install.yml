@@ -89,7 +89,7 @@
     state: present
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
-  with_items: karaf_logging_properties
+  with_items: "{{ karaf_logging_properties }}"
   when: karaf_use_extended_logging
   tags:
     - install
@@ -129,7 +129,7 @@
     state: present
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
-  with_items: karaf_log_gelf_properties
+  with_items: "{{ karaf_log_gelf_properties }}"
   when: karaf_log_gelf_enabled and karaf_log_gelf_host != ''
   tags:
     - install
@@ -161,7 +161,7 @@
     state: present
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
-  with_items: karaf_environment_default_options
+  with_items: "{{ karaf_environment_default_options }}"
   tags:
     - config
 
