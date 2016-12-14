@@ -40,7 +40,7 @@
 - name: "Install features: Apply features configs"
   sudo: yes
   template:
-    src: "{{ karaf_path_features_configs }}{{ '/' ~ karaf_environment_configs if karaf_environment_configs is defined else '' }}/{{ item.1 }}"
+    src: '{{ karaf_path_features_configs }}{{ "/" ~ karaf_environment_configs if karaf_environment_configs is defined else "" }}/{{ item.1 | regex_replace(".*/", "") }}'
     dest: '{{ karaf_home }}/{{ item.1 | regex_replace(".j2", "") }}'
     owner: "{{ karaf_os_user_name }}"
     group: "{{ karaf_os_user_name }}"

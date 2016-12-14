@@ -230,17 +230,18 @@
   shell: 'cat /proc/1/comm'
   sudo: yes
   register: karaf_init_proc_cmd
-  when: ansible_service_mgr is not defined and ansible_distribution_major_version|int >= 6
+  when: ansible_service_mgr is not defined
   changed_when: false
+  ignore_errors: True
   tags:
    - install
 
 #TODO remove Ansible 2.0
 - name: "Register init system fact"
   set_fact:
-    ansible_service_mgr: '{{ karaf_init_proc_cmd.stdout }}'
+    ansible_service_mgr: '{% if karaf_init_proc_cmd.rc == 0 %}{{ karaf_init_proc_cmd.stdout }}{% else %}sysvinit{% endif %}'
   register: karaf_init_proc_cmd
-  when: ansible_service_mgr is not defined and ansible_distribution_major_version|int >= 6
+  when: ansible_service_mgr is not defined
   tags:
    - install
 
@@ -249,7 +250,7 @@
     src: "{{karaf_home }}/bin/{{ karaf_service_link_name }}"
     dest: "/etc/init.d/{{ karaf_service_name }}"
     state: link
-  when: ansible_service_mgr is defined and ansible_service_mgr != 'systemd' or ansible_distribution_major_version|int < 6
+  when: ansible_service_mgr is defined and ansible_service_mgr != 'systemd'
   tags:
    - install
 
@@ -272,7 +273,7 @@
     state: present
     regexp: "Alias\\s*="
     line: "Alias={{ karaf_service_name }}.service"
-  when: ansible_service_mgr is defined and ansible_service_mgr == 'systemd' and ansible_distribution_major_version|int >= 6
+  when: ansible_service_mgr is defined and ansible_service_mgr == 'systemd'
 
 - name: "Register Karaf service"
   service:
