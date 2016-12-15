@@ -53,6 +53,17 @@
   tags:
     - install-features
 
+- name: "Install features: Add features repositories"
+  sudo: yes
+  shell: '{{ karaf_connect_to_local_Karaf_instance }} "feature:repo-add {% if item.url|d() %} {{ item.url }} {% else %} {{ item.repo }} {{ item.version }} {% endif %}"'
+  sudo_user: "{{ karaf_os_user_name }}"
+  environment:
+    JAVA_HOME: "{{ karaf_java_home }}"
+  with_items: "{{ karaf_features }}"
+  changed_when: false
+  tags:
+    - install-features
+
 - name: "Install features: Perform a simulation"
   sudo: yes
   shell: '{{ karaf_connect_to_local_Karaf_instance }} "feature:install -t {{ full_features_install_list_with_versions }} ; log:display -n 6 -l INFO org.apache.karaf.features.internal"'
