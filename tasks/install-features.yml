@@ -60,6 +60,7 @@
   environment:
     JAVA_HOME: "{{ karaf_java_home }}"
   with_items: "{{ karaf_features }}"
+  when: item.url is defined or item.repo is defined
   changed_when: false
   tags:
     - install-features
