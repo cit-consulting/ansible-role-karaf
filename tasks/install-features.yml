@@ -12,27 +12,15 @@
   set_fact:
     full_features_install_list_for_grep: "feature:list -i --no-format | grep '^({{ full_features_install_list_without_versions }})\\s'"
 
-- name: "Install features: Clean cache"
-  sudo: yes
-  file:
-    path: '{{karaf_home }}/data/clean_cache'
-    state: touch
-    mode: 0755
-  register: karaf_cache_cleaned
-  when: karaf_clean_cache == "yes"
-  tags:
-    - install-features
-
-- name: "Install features: Restart Karaf for Clean cache"
+- name: "Install features: Start Karaf"
   sudo: yes
   service:
     name: '{{ karaf_service_name }}'
-    state: restarted
-  when: karaf_cache_cleaned.changed
+    state: started
   tags:
     - install-features
 
-- name: "Install features: Wait for Karaf to start"
+- name: "Install features: Wait for Karaf ssh port"
   wait_for: "port={{ karaf_ssh_port }} timeout=30"
   tags:
     - install-features
@@ -53,6 +41,70 @@
   tags:
     - install-features
 
+- name: "Install features: Dump installed features to file"
+  sudo: yes
+  shell: '{{ karaf_connect_to_local_Karaf_instance }} "{{ full_features_install_list_for_grep }}" >/tmp/feature.txt'
+  environment:
+    JAVA_HOME: "{{ karaf_java_home }}"
+  changed_when: false
+  tags:
+    - install-features
+
+- name: "Install features: Calculate features diff stage 1"
+  replace:
+    dest: "/tmp/feature.txt"
+    regexp: '(?m)^(\S+)\s+(\S+)(.*)'
+    replace: '\1/\2'
+  changed_when: false
+  tags:
+    - install-features
+
+- name: "Install features: Calculate features diff stage 2"
+  lineinfile:
+    dest: "/tmp/feature.txt"
+    regexp: '{{ item.name }}/{{ item.version }}'
+    state: absent
+  with_items: "{{ karaf_features }}"
+  changed_when: false
+  tags:
+    - install-features
+
+- name: "Install features: Get features to upgrade"
+  shell: 'cat /tmp/feature.txt'
+  register: karaf_features_to_upgrade
+  changed_when: false
+  tags:
+    - install-features
+
+- name: "Install features: Check clean cache needed on feature upgrade"
+  sudo: yes
+  file:
+    path: '{{karaf_home }}/data/clean_cache'
+    state: touch
+    mode: 0755
+  register: karaf_cache_cleaned_on_upgrade
+  with_items: "{{ karaf_features }}"
+  when: (karaf_features_to_upgrade.stdout|search(item.name)
+            and item.karaf_clean_cache_on_upgrade is defined
+            and item.karaf_clean_cache_on_upgrade == "yes")
+            or karaf_clean_cache == "yes"
+  tags:
+    - install-features
+
+- name: "Install features: Restart Karaf for Clean cache"
+  sudo: yes
+  service:
+    name: '{{ karaf_service_name }}'
+    state: restarted
+  when: karaf_cache_cleaned_on_upgrade.changed
+  tags:
+    - install-features
+
+- name: "Install features: Wait for Karaf ssh port"
+  wait_for: "port={{ karaf_ssh_port }} timeout=30"
+  tags:
+    - install-features
+
 - name: "Install features: Add features repositories"
   sudo: yes
   shell: '{{ karaf_connect_to_local_Karaf_instance }} "feature:repo-add {% if item.url|d() %} {{ item.url }} {% else %} {{ item.repo }} {{ item.version }} {% endif %}"'
@@ -65,131 +117,26 @@
   tags:
     - install-features
 
-- name: "Install features: Perform a simulation"
+- name: "Install features: Perform installation"
   sudo: yes
-  shell: '{{ karaf_connect_to_local_Karaf_instance }} "feature:install -t {{ full_features_install_list_with_versions }} ; log:display -n 6 -l INFO org.apache.karaf.features.internal"'
+  shell: '{{ karaf_connect_to_local_Karaf_instance }} "feature:install --upgrade {{ full_features_install_list_with_versions }} ; log:display -n 6 -l INFO org.apache.karaf.features.internal"'
   sudo_user: "{{ karaf_os_user_name }}"
+  register: karaf_feature_install
+  changed_when: not karaf_feature_install.stdout|search("No deployment change")
   environment:
     JAVA_HOME: "{{ karaf_java_home }}"
-  register: karaf_new_feature_install
-  changed_when: false
-  tags:
-    - install-features
-
-- name: "Install features: has features pending changes"
-  set_fact:
-    karaf_has_features_pending_changes: not karaf_new_feature_install.stdout|search("No deployment change")
-
-- name: "Install features: Check features install"
-  sudo: yes
-  shell: '{{ karaf_connect_to_local_Karaf_instance }} "{{ full_features_install_list_for_grep }}" >/tmp/feature.txt'
-  environment:
-    JAVA_HOME: "{{ karaf_java_home }}"
-  when: karaf_has_features_pending_changes
-  changed_when: false
-  tags:
-    - install-features
-
-- name: "Replace features in the file feature.txt"
-  replace:
-    dest: "/tmp/feature.txt"
-    regexp: '(?m)^(\S+)\s+(\S+)(.*)'
-    replace: '\1/\2'
-  when: karaf_has_features_pending_changes
-  changed_when: false
-  tags:
-    - install-features
-
-- name: "Preparation features list for uninstall"
-  lineinfile:
-    dest: "/tmp/feature.txt"
-    regexp: '{{ item.name }}/{{ item.version }}'
-    state: absent
-  with_items: "{{ karaf_features }}"
-  when: karaf_has_features_pending_changes
-  changed_when: false
-  tags:
-    - install-features
-
-- name: "Get features list for uninstall"
-  shell: 'cat /tmp/feature.txt'
-  register: karaf_find_feature_to_uninstall
-  when: karaf_has_features_pending_changes
-  changed_when: false
-  tags:
-    - install-features
-
-- name: "Install features: Clean cache on upgrade"
-  sudo: yes
-  file:
-    path: '{{karaf_home }}/data/clean_cache'
-    state: touch
-    mode: 0755
-  register: karaf_cache_cleaned_on_upgrade
-  with_items: "{{ karaf_features }}"
-  when: ((karaf_has_features_pending_changes and karaf_find_feature_to_uninstall.stdout is defined and
-         karaf_find_feature_to_uninstall.stdout != "" and karaf_find_feature_to_uninstall.stdout|search(item.name) and
-          item.karaf_clean_cache_on_upgrade is defined and item.karaf_clean_cache_on_upgrade == "yes") and
-           (karaf_cache_cleaned is not defined or not karaf_cache_cleaned.changed))
-  tags:
-    - install-features
-
-- name: "Install features: Restart Karaf for Clean cache on upgrade"
-  sudo: yes
-  service:
-    name: '{{ karaf_service_name }}'
-    state: restarted
-  when: karaf_cache_cleaned_on_upgrade.changed
-  tags:
-    - install-features
-
-- name: "Install features: Wait for Karaf to start on upgrade"
-  wait_for: "port={{ karaf_ssh_port }} timeout=30"
-  when: karaf_cache_cleaned_on_upgrade.changed
-  tags:
-    - install-features
-
-- name: "Install features: Add features url for Clean cache on upgrade"
-  sudo: yes
-  shell: '{{ karaf_connect_to_local_Karaf_instance }} "feature:repo-add {% if item.url|d() %} {{ item.url }} {% else %} {{ item.repo }} {{ item.version }} {% endif %}"'
-  sudo_user: "{{ karaf_os_user_name }}"
-  environment:
-    JAVA_HOME: "{{ karaf_java_home }}"
-  with_items: "{{ karaf_features }}"
-  when: (karaf_cache_cleaned_on_upgrade.changed and (item.url is defined or item.repo is defined))
-  changed_when: false
-  tags:
-    - install-features
-
-- name: "Install features: Install features"
-  sudo: yes
-  shell: '{{ karaf_connect_to_local_Karaf_instance }} "feature:install --upgrade {{ full_features_install_list_with_versions }}"'
-  sudo_user: "{{ karaf_os_user_name }}"
-  environment:
-    JAVA_HOME: "{{ karaf_java_home }}"
-  when: karaf_has_features_pending_changes
   tags:
     - install-features
 
 - name: "Pause for Install features"
   pause:
     seconds: '5'
-  when: karaf_has_features_pending_changes
+  when: karaf_feature_install.changed
   tags:
     - install-features
 
-- name: "Install features: Wait Services"
-  sudo: yes
-  shell: '{{ karaf_connect_to_local_Karaf_instance }} "service:wait -e -t {{ karaf_timeout_to_wait_service }} {{ item.wait_service }}"'
-  sudo_user: "{{ karaf_os_user_name }}"
-  environment:
-    JAVA_HOME: "{{ karaf_java_home }}"
-  when: '{{ item.wait_service is defined and karaf_has_features_pending_changes }}'
-  with_items: "{{ karaf_features }}"
-  tags:
-    - install-features
-
-- name: "Install feature: Restart feature to changed feature configs"
+# TODO не перезапускать только что установленные или обновленные фичи
+- name: "Install feature: Restart feature on config change"
   sudo: yes
   shell: '{{ karaf_connect_to_local_Karaf_instance }} "feature:restart {{ item.item[0].name  }}/{{ item.item[0].version }}"'
   sudo_user: "{{ karaf_os_user_name }}"
@@ -197,28 +144,54 @@
     JAVA_HOME: "{{ karaf_java_home }}"
   when: (item.changed and item.item[0].karaf_on_config_change is defined and item.item[0].karaf_on_config_change == "feature")
   with_items: karaf_features_configs_changed.results
+  register: karaf_feature_restarted
   tags:
     - install-features
 
-- name: "Install feature: Restart Karaf to changed feature configs"
+- name: "Install features: Check Karaf restart needed on feature config change"
   sudo: yes
   action: shell echo "Restart Karaf to changed feature configs"
-  notify: Karaf configuration changed
   when: (item.changed and item.item[0].karaf_on_config_change is defined and item.item[0].karaf_on_config_change == "karaf")
   with_items: karaf_features_configs_changed.results
+  register: karaf_restart_on_conf_change_needed
   tags:
     - install-features
 
-- name: "Install feature: Restart Karaf"
+- name: "Install feature: Check Karaf restart needed on feature upgrade"
   sudo: yes
   action: shell echo "Restart Karaf"
-  notify: Karaf configuration changed
   with_items: "{{ karaf_features }}"
-  when: ((karaf_has_features_pending_changes and karaf_find_feature_to_uninstall.stdout is defined and
-         karaf_find_feature_to_uninstall.stdout != "" and karaf_find_feature_to_uninstall.stdout|search(item.name) and
-          item.karaf_restart_on_upgrade is defined and item.karaf_restart_on_upgrade == "yes") or
-           (karaf_has_features_pending_changes and karaf_find_feature_to_uninstall.stdout is defined and
-            karaf_find_feature_to_uninstall.stdout == "" and item.karaf_restart_on_upgrade is defined and
-             item.karaf_restart_on_upgrade == "yes"))
+  when: (karaf_feature_install.changed
+          and karaf_features_to_upgrade.stdout != ""
+          and karaf_features_to_upgrade.stdout|search(item.name)
+          and item.karaf_restart_on_upgrade is defined
+          and item.karaf_restart_on_upgrade == "yes")
+  register: karaf_restart_on_feature_upgrade_needed
+  tags:
+    - install-features
+
+- name: "Install features: Restart Karaf on feature upgrade or config change"
+  sudo: yes
+  service:
+    name: '{{ karaf_service_name }}'
+    state: restarted
+  when: karaf_restart_on_conf_change_needed.changed or karaf_restart_on_feature_upgrade_needed.changed
+  register: karaf_restart_on_feature_upgrade
+  tags:
+    - install-features
+
+- name: "Install features: Wait for Karaf ssh port"
+  wait_for: "port={{ karaf_ssh_port }} timeout=30"
+  tags:
+    - install-features
+
+- name: "Install features: Check OSGI services is running"
+  sudo: yes
+  shell: '{{ karaf_connect_to_local_Karaf_instance }} "service:wait -e -t {{ karaf_timeout_to_wait_service }} {{ item.wait_service }}"'
+  sudo_user: "{{ karaf_os_user_name }}"
+  environment:
+    JAVA_HOME: "{{ karaf_java_home }}"
+  when: '{{ item.wait_service is defined and (karaf_feature_install.changed or karaf_restart_on_feature_upgrade.changed or karaf_feature_restarted.changed or karaf_features_configs_changed.changed)}}'
+  with_items: "{{ karaf_features }}"
   tags:
     - install-features
