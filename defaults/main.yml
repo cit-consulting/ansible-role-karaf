@@ -123,3 +123,5 @@ karaf_jcp_files: []
 #  - 'dependencies/bcprov-jdk15on-1.50.jar'
 
 karaf_wrapper_custom_conf: []
+
+karaf_install_feature_incrementaly: 'True'

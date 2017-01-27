@@ -2,15 +2,21 @@
 
 - name: "Install features: Find the full features install list with versions"
   set_fact:
-    full_features_install_list_with_versions: '{% for features in karaf_features %}{{ features.name }}/{{ features.version }} {% endfor %}'
+    full_features_install_list_with_versions: '{% for features in karaf_features %}{{ features.name }}{{ "/" ~ features.version if features.version != "" else "" }} {% endfor %}'
+  tags:
+    - install-features
 
 - name: "Install features: Find the full features install list without versions"
   set_fact:
-    full_features_install_list_without_versions: '{{ full_features_install_list_with_versions | regex_replace("(/\S+)\s", "|") }}'
+    full_features_install_list_without_versions: '{{ full_features_install_list_with_versions | regex_replace("(/\S+)?\s", "|") }}'
+  tags:
+    - install-features
 
 - name: "Install features: Preparation the full features install list for grep"
   set_fact:
     full_features_install_list_for_grep: "feature:list -i --no-format | grep '^({{ full_features_install_list_without_versions }})\\s'"
+  tags:
+    - install-features
 
 - name: "Install features: Start Karaf"
   sudo: yes
@@ -62,9 +68,10 @@
 - name: "Install features: Calculate features diff stage 2"
   lineinfile:
     dest: "/tmp/feature.txt"
-    regexp: '{{ item.name }}/{{ item.version }}'
+    regexp: '{{ item.name }}/{{ item.version | regex_replace("-", ".") }}'
     state: absent
   with_items: "{{ karaf_features }}"
+  register: karaf_calculate_feature
   changed_when: false
   tags:
     - install-features
@@ -73,6 +80,38 @@
   shell: 'cat /tmp/feature.txt'
   register: karaf_features_to_upgrade
   changed_when: false
+  tags:
+    - install-features
+
+- name: "Install features: Delete feature_Incrementaly.txt"
+  file:
+    path: '/tmp/feature_Incrementaly.txt'
+    state: absent
+  changed_when: false
+  when: karaf_install_feature_incrementaly
+  tags:
+    - install-features
+
+- name: "Install features: Calculate features to install Incrementaly"
+  lineinfile:
+    dest: "/tmp/feature_Incrementaly.txt"
+    line: '{{ item.0.name }}/{{ item.0.version }}'
+    state: present
+    create: yes
+  when: karaf_install_feature_incrementaly and item.1 == ""
+  with_together:
+    - "{{ karaf_features }}"
+    - "{{ karaf_calculate_feature.results | map(attribute='msg') | list }}"
+  changed_when: false
+  tags:
+    - install-features
+
+- name: "Install features: Get features to install Incrementaly"
+  shell: 'cat /tmp/feature_Incrementaly.txt'
+  register: karaf_features_to_incrementaly_instaled
+  when: karaf_install_feature_incrementaly
+  changed_when: false
+  ignore_errors: True
   tags:
     - install-features
 
@@ -105,6 +144,15 @@
   tags:
     - install-features
 
+- name: "Install features: Set karaf feature install incrementaly list"
+  set_fact:
+    full_features_install_list_with_versions: "{{ karaf_features_to_incrementaly_instaled.stdout_lines  | join (' ') }}"
+  when: (karaf_features_to_incrementaly_instaled.stdout_lines is defined
+          and karaf_cache_cleaned_on_upgrade is defined
+          and not karaf_cache_cleaned_on_upgrade.changed)
+  tags:
+    - install-features
+
 - name: "Install features: Add features repositories"
   sudo: yes
   shell: '{{ karaf_connect_to_local_Karaf_instance }} "feature:repo-add {% if item.url|d() %} {{ item.url }} {% else %} {{ item.repo }} {{ item.version }} {% endif %}"'
@@ -123,6 +171,7 @@
   sudo_user: "{{ karaf_os_user_name }}"
   register: karaf_feature_install
   changed_when: not karaf_feature_install.stdout|search("No deployment change")
+  when: full_features_install_list_with_versions != ""
   environment:
     JAVA_HOME: "{{ karaf_java_home }}"
   tags:
