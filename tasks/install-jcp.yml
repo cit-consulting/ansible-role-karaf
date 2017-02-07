@@ -1,5 +1,14 @@
 ---
 
+- name: "Download JCE distribution"
+  local_action:  get_url url={{ karaf_jcp_download_url }} dest=tmp/jcp-{{ karaf_jcp_version }}.{{ karaf_jcp_archive_type }}
+  when: karaf_jcp_download_url is defined
+  run_once: true
+  changed_when: false
+  sudo: no
+  tags:
+    - install
+
 #TODO check if exists
 - name: "Check installation JCE"
   sudo: yes
@@ -25,7 +34,7 @@
 - name: "Unarchived JCP distribution"
   sudo: yes
   unarchive:
-    src: 'tmp/jcp-{{ karaf_jcp_version }}.zip'
+    src: 'tmp/jcp-{{ karaf_jcp_version }}.{{ karaf_jcp_archive_type }}'
     dest: '/tmp/{{ karaf_jcp_version }}'
   when: jcp_install.changed
   ignore_errors: True

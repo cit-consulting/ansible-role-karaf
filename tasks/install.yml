@@ -2,9 +2,9 @@
 
 # Install ESB
 
-- name: "Dowload Karaf distribution"
-  local_action:  get_url url={{ karaf_downoal_url }} dest=tmp/{{ karaf_distr_name }}.{{ karaf_archive_type }}
-  when: karaf_downoal_url is defined
+- name: "Download Karaf distribution"
+  local_action:  get_url url={{ karaf_download_url }} dest=tmp/{{ karaf_distr_name }}.{{ karaf_archive_type }}
+  when: karaf_download_url is defined
   run_once: true
   changed_when: false
   sudo: no

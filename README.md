@@ -36,7 +36,7 @@ Multi instance use:
       karaf_rmi_registry_port: "1100"
       karaf_rmi_server_port: "44445"
       karaf_distr_name: "TESB_SE-V5.4.2"
-      karaf_downoal_url: "ftp://10.192.0.50/Public/distr/TalendESB/TESB_SE-V5.4.2.tar.gz"
+      karaf_download_url: "ftp://10.192.0.50/Public/distr/TalendESB/TESB_SE-V5.4.2.tar.gz"
 
 
 License

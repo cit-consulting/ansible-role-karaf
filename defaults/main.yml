@@ -46,7 +46,10 @@ karaf_log_gelf_additionalFields: "{}"
 
 #karaf_osgi_framework: "felix" # equinox
 
-karaf_downoal_url: "http://www.eu.apache.org/dist/karaf/{{ karaf_distr_version }}/{{ karaf_distr_name }}.{{ karaf_archive_type }}"
+karaf_download_url: "http://www.eu.apache.org/dist/karaf/{{ karaf_distr_version }}/{{ karaf_distr_name }}.{{ karaf_archive_type }}"
+
+karaf_jcp_archive_type: 'zip'
+karaf_jcp_download_url: "ftp://10.192.0.50/Public/distr/JCP/jcp-{{ karaf_jcp_version }}.{{ karaf_jcp_archive_type }}"
 
 karaf_service_link_name: "{{ karaf_service_name }}-service"
 
