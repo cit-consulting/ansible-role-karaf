@@ -77,63 +77,68 @@
   tags:
     - install
 
-- name: "Create directory karaf-extended-logging/1.0.0/"
-  file:
-    path: "{{ karaf_home }}/system/ru/citc/karaf/karaf-extended-logging/1.0.0"
-    state: directory
-  when: karaf_use_extended_logging
-  tags:
-    - install
-
-- name: "Upload Karaf extended logging module"
-  copy:
-    src: "karaf-extended-logging-1.0.0.jar"
-    dest: "{{ karaf_home }}/system/ru/citc/karaf/karaf-extended-logging/1.0.0/karaf-extended-logging-1.0.0.jar"
-  when: karaf_use_extended_logging
-  tags:
-    - install
-
-- name: "Configure extended logging in org.ops4j.pax.logging.cfg"
+- name: "Configure logging in org.ops4j.pax.logging.cfg"
   lineinfile:
     dest: "{{karaf_home }}/etc/org.ops4j.pax.logging.cfg"
     state: present
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items: "{{ karaf_logging_properties }}"
-  when: karaf_use_extended_logging
   tags:
     - install
 
-- name: "Create directory gelfj/1.1.14/"
+- name: "Configure logging rolling strategy in org.ops4j.pax.logging.cfg"
+  lineinfile:
+    dest: "{{karaf_home }}/etc/org.ops4j.pax.logging.cfg"
+    state: present
+    insertafter: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items: "{{ karaf_logging_rolling_strategy }}"
+  tags:
+    - install
+
+- name: "Create directory log4j2/log4j2-gelf/1.3.1.CITC4"
   file:
-    path: "{{ karaf_home }}/system/org/graylog2/gelfj/1.1.14"
+    path: "{{ karaf_home }}/system/org/graylog2/log4j2/log4j2-gelf/1.3.1.CITC4"
     state: directory
   when: karaf_log_gelf_enabled
   tags:
     - install
 
-- name: "Upload Karaf gelfj logging module"
+- name: "Upload Karaf gelf logging module"
   copy:
-    src: "gelfj-1.1.14.jar"
-    dest: "{{ karaf_home }}/system/org/graylog2/gelfj/1.1.14/gelfj-1.1.14.jar"
+    src: "log4j2-gelf-1.3.1.CITC4-osgi.jar"
+    dest: "{{ karaf_home }}/system/org/graylog2/log4j2/log4j2-gelf/1.3.1.CITC4/log4j2-gelf-1.3.1.CITC4-osgi.jar"
   when: karaf_log_gelf_enabled
   tags:
     - install
 
-- name: "Configure extended logging in startup.properties"
+- name: "Configure gelf logging in startup.properties"
   lineinfile:
     dest: "{{ karaf_home }}/etc/startup.properties"
     state: present
-    regexp: '{{ item.1 | replace("mvn\:", "") | regex_replace("/[0-9.]+\w+?\Z", "") }}.*$'
-    line: '{{ item.1 }} = 7'
-  with_indexed_items:
-    - mvn\:ru.citc.karaf/karaf-extended-logging/1.0.0
-    - mvn\:org.graylog2/gelfj/1.1.14
-  when: (karaf_use_extended_logging and item.0 == 0) or (karaf_log_gelf_enabled and item.0 == 1)
+    regexp: '{{ item | replace("mvn\:", "") | regex_replace("/[0-9.]+\w+?\Z", "") }}.*$'
+    line: '{{ item }} = 8'
+  with_items:
+    - mvn\:org.graylog2.log4j2/log4j2-gelf/1.3.1.CITC4/jar/osgi
+  when: karaf_log_gelf_enabled
   tags:
     - install
 
-- name: "Configure gelfj logging in org.ops4j.pax.logging.cfg"
+- name: "Add log4j2.status and log4j2.packages on gelf logging in org.ops4j.pax.logging.cfg"
+  lineinfile:
+    dest: "{{karaf_home }}/etc/org.ops4j.pax.logging.cfg"
+    state: present
+    insertbefore: BOF
+    line: "{{ item }}"
+  with_items:
+    - "log4j2.packages = org.graylog2.log4j2"
+    - "#log4j2.status = debug"
+  when: karaf_log_gelf_enabled and karaf_log_gelf_host != ''
+  tags:
+    - install
+
+- name: "Configure gelf logging in org.ops4j.pax.logging.cfg"
   lineinfile:
     dest: "{{karaf_home }}/etc/org.ops4j.pax.logging.cfg"
     state: present

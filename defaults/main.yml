@@ -34,15 +34,15 @@ karaf_java_initial_memory: "512"
 karaf_java_max_memory: "512"
 karaf_java_max_perm_memory: "128"
 
-karaf_use_extended_logging: true
 karaf_log_file_size: "9MB"
 karaf_log_file_roll_count: 100
 
 karaf_log_gelf_enabled: true
-karaf_log_gelf_proto: "tcp"
-karaf_log_gelf_host: ''
+karaf_log_gelf_proto: "TCP"
+karaf_log_gelf_host: ""
 karaf_log_gelf_port: "12201"
-karaf_log_gelf_additionalFields: "{}"
+karaf_log_gelf_additionalFields_key: ""
+karaf_log_gelf_additionalFields_value: ""
 
 #karaf_osgi_framework: "felix" # equinox
 

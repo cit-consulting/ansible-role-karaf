@@ -1,34 +1,28 @@
 ---
 
 karaf_logging_properties:
-  - { regexp: "^log4j.appender.out=.*$", line: "log4j.appender.out=uk.org.simonsite.log4j.appender.TimeAndSizeRollingAppender" }
-  - { regexp: "^log4j.appender.out.layout=.*$", line: "log4j.appender.out.layout=org.apache.log4j.PatternLayout" }
-  - { regexp: "^log4j.appender.out.layout.(.)onversionPattern.*$", line: "log4j.appender.out.layout.ConversionPattern=%d{ISO8601} | %-5.5p | %-16.16t | %-32.32c{1} | %X{bundle.id} - %X{bundle.name} - %X{bundle.version} | %m%n" }
-  - { regexp: "^log4j.appender.out.file.*$", line: "log4j.appender.out.file=${karaf.data}/log/{{ karaf_service_name }}.log" }
-  - { regexp: "^log4j.appender.out.append.*$", line: "log4j.appender.out.append=true" }
-  - { regexp: "^log4j.appender.out.(.)atePattern.*$", line: "log4j.appender.out.DatePattern=.yyyy-MM-dd" }
-  - { regexp: "^log4j.appender.out.(.)ateRollEnforced.*$", line: "log4j.appender.out.DateRollEnforced=true" }
-  - { regexp: "^log4j.appender.out.(.)ompressionAlgorithm.*$", line: "log4j.appender.out.CompressionAlgorithm=GZ" }
-  - { regexp: "^log4j.appender.out.(.)axRollFileCount.*$", line: "log4j.appender.out.MaxRollFileCount={{ karaf_log_file_roll_count }}" }
-  - { regexp: "^log4j.appender.out.(.)axFileSize.*$", line: "log4j.appender.out.MaxFileSize={{ karaf_log_file_size }}" }
-  - { regexp: "log4j.appender.out.(.)axBackupIndex=.*$", line: "#log4j.appender.out.MaxBackupIndex=" }
+  - { regexp: "^#?log4j2.rootLogger.includeLocation.*$", line: "log4j2.rootLogger.includeLocation = false" }
+  - { regexp: "^#?log4j2.appender.rolling.fileName.*$", line: "log4j2.appender.rolling.fileName = ${karaf.data}/log/{{ karaf_service_name }}.log" }
+  - { regexp: "^#?log4j2.appender.rolling.filePattern.*$", line: "log4j2.appender.rolling.filePattern = ${karaf.data}/log/karaf.log.%d{yyyy-MM-dd}.%i.gz" }
+  - { regexp: "^#?log4j2.appender.rolling.policies.size.size.*$", line: "log4j2.appender.rolling.policies.size.size = {{ karaf_log_file_size }}" }
+
+karaf_logging_rolling_strategy:
+  - { regexp: "^#?log4j2.appender.rolling.policies.size.size.*$", line: "log4j2.appender.rolling.strategy.type = DefaultRolloverStrategy" }
+  - { regexp: "^#?log4j2.appender.rolling.strategy.type.*$", line: "log4j2.appender.rolling.strategy.max = {{ karaf_log_file_roll_count }}" }
 
 karaf_log_gelf_properties:
-  - { regexp: "^log4j.rootLogger.*$", line: "log4j.rootLogger=INFO, out, osgi:*, async" }
   - { regexp: "^# Define the graylog2 destination.*$", line: "# Define the graylog2 destination" }
-  - { regexp: "^log4j.appender.async=.*$", line: "log4j.appender.async=org.apache.log4j.AsyncAppender" }
-  - { regexp: "^log4j.appender.async.blocking.*$", line: "log4j.appender.async.blocking=false" }
-  - { regexp: "^log4j.appender.async.bufferSize.*$", line: "log4j.appender.async.bufferSize=20000" }
-  - { regexp: "^log4j.appender.async.appenders.*$", line: "log4j.appender.async.appenders=graylog2" }
-  - { regexp: "^log4j.appender.graylog2=.*$", line: "log4j.appender.graylog2=org.graylog2.log.GelfAppender" }
-  - { regexp: "^log4j.appender.graylog2.graylogHost.*$", line: "log4j.appender.graylog2.graylogHost={{ karaf_log_gelf_proto }}:{{ karaf_log_gelf_host }}" }
-  - { regexp: "^log4j.appender.graylog2.graylogPort.*$", line: "log4j.appender.graylog2.graylogPort={{ karaf_log_gelf_port }}" }
-  - { regexp: "^log4j.appender.graylog2.facility.*$", line: "log4j.appender.graylog2.facility=karaf" }
-  - { regexp: "^log4j.appender.graylog2.layout.*$", line: "log4j.appender.graylog2.layout=org.apache.log4j.PatternLayout" }
-  - { regexp: "^log4j.appender.graylog2.extractStacktrace.*$", line: "log4j.appender.graylog2.extractStacktrace=true" }
-  - { regexp: "^log4j.appender.graylog2.addExtendedInformation.*$", line: "log4j.appender.graylog2.addExtendedInformation=true" }
-  - { regexp: "^log4j.appender.graylog2.includeLocation.*$", line: "log4j.appender.graylog2.includeLocation=false" }
-  - { regexp: "^log4j.appender.graylog2.additionalFields.*$", line: "log4j.appender.graylog2.additionalFields={{ '{{ karaf_log_gelf_additionalFields }}' if karaf_log_gelf_additionalFields is defined else '{}' }}" }
+  - { regexp: "^log4j2.rootLogger.appenderRef.GELF.ref.*$", line: "log4j2.rootLogger.appenderRef.GELF.ref = GELF" }
+  - { regexp: "^log4j2.appender.graylog.type.*$", line: "log4j2.appender.graylog.type = GELF" }
+  - { regexp: "^log4j2.appender.graylog.name.*$", line: "log4j2.appender.graylog.name = GELF" }
+  - { regexp: "^log4j2.appender.graylog.server.*$", line: "log4j2.appender.graylog.server = {{ karaf_log_gelf_host }}" }
+  - { regexp: "^log4j2.appender.graylog.port.*$", line: "log4j2.appender.graylog.port = {{ karaf_log_gelf_port }}" }
+  - { regexp: "^log4j2.appender.graylog.protocol.*$", line: "log4j2.appender.graylog.protocol = {{ karaf_log_gelf_proto }}" }
+  - { regexp: "^log4j2.appender.graylog.includeExceptionCause.*$", line: "log4j2.appender.graylog.includeExceptionCause = true" }
+  - { regexp: "^log4j2.appender.graylog.tcpKeepAlive.*$", line: "log4j2.appender.graylog.tcpKeepAlive = true" }
+  - { regexp: "^log4j2.appender.graylog.additionalFields.type.*$", line: "log4j2.appender.graylog.additionalFields.type = KeyValuePair" }
+  - { regexp: "^log4j2.appender.graylog.additionalFields.key.*$", line: "log4j2.appender.graylog.additionalFields.key = {{ karaf_log_gelf_additionalFields_key }}" }
+  - { regexp: "^log4j2.appender.graylog.additionalFields.value.*$", line: "log4j2.appender.graylog.additionalFields.value = {{ karaf_log_gelf_additionalFields_value }}" }
 
 karaf_wrapper_conf1:
   - { regexp: "^#?set.default.JAVA_HOME.*$", line: "set.default.JAVA_HOME={{ karaf_java_home }}" }
