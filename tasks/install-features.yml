@@ -165,6 +165,18 @@
   tags:
     - install-features
 
+- name: "Install features: Perform installation featuresBoot"
+  sudo: yes
+  shell: '{{ karaf_connect_to_local_Karaf_instance }} "feature:install --upgrade {{ karaf_additional_boot_features | regex_replace(",", "") }} ; log:display -n 6 -l INFO org.apache.karaf.features.internal"'
+  sudo_user: "{{ karaf_os_user_name }}"
+  register: karaf_feature_install_featuresBoot
+  changed_when: not karaf_feature_install_featuresBoot.stdout|search("No deployment change")
+  when: karaf_additional_boot_features != '' and karaf_clean_cache != 'yes'
+  environment:
+    JAVA_HOME: "{{ karaf_java_home }}"
+  tags:
+    - install-features
+
 - name: "Install features: Perform installation"
   sudo: yes
   shell: '{{ karaf_connect_to_local_Karaf_instance }} "feature:install --upgrade {{ full_features_install_list_with_versions }} ; log:display -n 6 -l INFO org.apache.karaf.features.internal"'

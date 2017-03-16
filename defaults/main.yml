@@ -86,6 +86,11 @@ karaf_features: []
 #      - deploy/2.cfg
 #   wait_service: '' # The service class or filter
 
+karaf_additional_boot_features: ''
+#  transaction,
+#  jdbc,
+#  pax-jdbc-pool-hikaricp
+
 karaf_jre_properties: ''
 #  sun.misc,
 #  javax.accessibility

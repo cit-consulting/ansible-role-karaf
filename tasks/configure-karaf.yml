@@ -73,3 +73,13 @@
   notify: Karaf configuration changed
   tags:
     - config
+
+- name: 'Configure org.apache.karaf.features.cfg'
+  replace:
+    dest: "{{ karaf_home }}/etc/org.apache.karaf.features.cfg"
+    regexp: '(^#?[ \t]*featuresBoot =)([ \t\w\d:/@\.=,\-]+)'
+    replace: '\1 {{ karaf_additional_boot_features }}, '
+  when: karaf_additional_boot_features != ''
+  notify: Karaf configuration changed
+  tags:
+    - config
