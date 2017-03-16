@@ -5,3 +5,4 @@
     name: '{{ karaf_service_name }}'
     state: restarted
   sudo: yes
+  when: karaf_clean_cache == 'no' and karaf_clean_all == 'no'

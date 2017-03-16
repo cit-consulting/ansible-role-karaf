@@ -2,7 +2,7 @@
 
 - name: "Install features: Find the full features install list with versions"
   set_fact:
-    full_features_install_list_with_versions: '{% for features in karaf_features %}{{ features.name }}{{ "/" ~ features.version if features.version != "" else "" }} {% endfor %}'
+    full_features_install_list_with_versions: '{% for features in karaf_features %}{{ features.name }}{{ "/" ~ features.version if features.version is defined  and features.version != "" else "" }} {% endfor %}'
   tags:
     - install-features
 
@@ -68,7 +68,7 @@
 - name: "Install features: Calculate features diff stage 2"
   lineinfile:
     dest: "/tmp/feature.txt"
-    regexp: '{{ item.name }}/{{ item.version | regex_replace("-", ".") }}'
+    regexp: '{{ item.name }}/{{ item.version|d() | regex_replace("-", ".") }}'
     state: absent
   with_items: "{{ karaf_features }}"
   register: karaf_calculate_feature
@@ -95,7 +95,7 @@
 - name: "Install features: Calculate features to install Incrementaly"
   lineinfile:
     dest: "/tmp/feature_Incrementaly.txt"
-    line: '{{ item.0.name }}/{{ item.0.version }}'
+    line: '{{ item.0.name }}/{{ item.0.version|d() }}'
     state: present
     create: yes
   when: karaf_install_feature_incrementaly and item.1 == ""
@@ -155,7 +155,7 @@
 
 - name: "Install features: Add features repositories"
   sudo: yes
-  shell: '{{ karaf_connect_to_local_Karaf_instance }} "feature:repo-add {% if item.url|d() %} {{ item.url }} {% else %} {{ item.repo }} {{ item.version }} {% endif %}"'
+  shell: '{{ karaf_connect_to_local_Karaf_instance }} "feature:repo-add {% if item.url|d() %} {{ item.url }} {% else %} {{ item.repo }} {{ item.version|d() }} {% endif %}"'
   sudo_user: "{{ karaf_os_user_name }}"
   environment:
     JAVA_HOME: "{{ karaf_java_home }}"
@@ -242,5 +242,6 @@
     JAVA_HOME: "{{ karaf_java_home }}"
   when: '{{ item.wait_service is defined and (karaf_feature_install.changed or karaf_restart_on_feature_upgrade.changed or karaf_feature_restarted.changed or karaf_features_configs_changed.changed)}}'
   with_items: "{{ karaf_features }}"
+  changed_when: false
   tags:
     - install-features
