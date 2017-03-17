@@ -47,6 +47,16 @@
   tags:
    - install
 
+- name: "Unregister Karaf service on Karaf home changed"
+  service:
+    name: "{{ karaf_service_name }}"
+    enabled: no
+  sudo: yes
+  when: karaf_os_user_home_changed | bool
+  ignore_errors: True
+  tags:
+    - install
+
 - name: "Create Karaf system user"
   user:
     name: "{{ karaf_os_user_name }}"
@@ -256,16 +266,6 @@
 
 - include: "configure-wrapper.yml"
   when: not karaf_wrapper_conf_path_validation.stat.exists
-
-- name: "Unregister Karaf service on Karaf home changed"
-  service:
-    name: "{{ karaf_service_name }}"
-    enabled: no
-  sudo: yes
-  when: karaf_os_user_home_changed | bool
-  ignore_errors: True
-  tags:
-    - install
 
 - name: "Patch wrapper systemd unit"
   lineinfile:
