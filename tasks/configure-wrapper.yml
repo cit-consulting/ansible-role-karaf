@@ -1,36 +1,40 @@
 ---
 
-- name: "Configure wrapper 1"
-  lineinfile:
-    dest: "{{karaf_home }}/etc/{{ karaf_service_name }}-wrapper.conf"
-    state: present
-    regexp: "{{ item.regexp }}"
-    line: "{{ item.line }}"
-  with_flattened:
-    - "{{ karaf_wrapper_conf1 }}"
-    - "{{ karaf_wrapper_custom_conf }}"
-  notify: Karaf configuration changed
+- name: "Slurp wrapper.conf file"
+  shell: 'cat {{karaf_home }}/etc/{{ karaf_service_name }}-wrapper.conf'
+  register: karaf_wrapper_slurpfile
+  changed_when: false
   tags:
     - config
 
-- name: "Configure wrapper default JVM options"
-  lineinfile:
-    dest: "{{karaf_home }}/etc/{{ karaf_service_name }}-wrapper.conf"
-    state: present
-    insertafter: "^#?wrapper.java.additional.{{ karaf_wrapper_conf_last_num|int + item.0 }}.*$"
-    line: "wrapper.java.additional.{{ karaf_wrapper_conf_last_num|int + item.0 + 1 }}={{ item.1 }}"
-  with_indexed_items: "{{ karaf_wrapper_default_jvm_options }}"
-  notify: Karaf configuration changed
+- name: "Get last numeric on wrapper.java.additional"
+  set_fact:
+    karaf_wrapper_conf_last_num:
+      '{%- set tmp = [] -%}
+       {%- for elem in karaf_wrapper_slurpfile.stdout_lines | map("match", "wrapper\.java\.additional\.(\d+).*$") | list -%}
+         {%- if elem -%}
+           {{ tmp.append(karaf_wrapper_slurpfile.stdout_lines[loop.index - 1].split(".")[3].split("=")[0] | int ) }}
+         {%- endif -%}
+       {%- endfor -%}
+       {{ tmp | last }}'
   tags:
     - config
 
-- name: "Configure wrapper additional JVM options"
+- name: "Add include ansible-overrides-wrapper.conf"
   lineinfile:
     dest: "{{karaf_home }}/etc/{{ karaf_service_name }}-wrapper.conf"
-    state: present
-    insertafter: "^#?wrapper.java.additional.{{ karaf_wrapper_conf_last_num|int + item.0 + 3}}.*$"
-    line: "wrapper.java.additional.{{ karaf_wrapper_conf_last_num|int + item.0 + 4 }}={{ item.1 }}"
-  with_indexed_items: "{{ karaf_wrapper_additional_jvm_options }}"
+    line: "#include ../etc/ansible-overrides-wrapper.conf"
+  tags:
+    - config
+
+- name: "Configure wrapper"
+  template:
+    src: 'ansible-overrides-wrapper.conf.j2'
+    dest: '{{karaf_home }}/etc/ansible-overrides-wrapper.conf'
+    owner: '{{ karaf_os_user_name }}'
+    group: '{{ karaf_os_user_name }}'
+    mode: 0644
+    backup: yes
   notify: Karaf configuration changed
   tags:
     - config

@@ -281,6 +281,7 @@
     enabled: yes
   sudo: yes
   register: karaf_service_registered
+  changed_when: false
   tags:
     - install
 

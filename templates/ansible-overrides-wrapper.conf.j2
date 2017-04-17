@@ -1,0 +1,36 @@
+# {{ ansible_managed }}
+
+# Configure wrapper default
+set.default.JAVA_HOME={{ karaf_java_home }}
+wrapper.java.initmemory={{ karaf_java_initial_memory }}
+wrapper.java.maxmemory={{ karaf_java_max_memory }}
+wrapper.startup.timeout={{ karaf_wrapper_startup_timeout }}
+wrapper.ping.timeout={{ karaf_wrapper_ping_timeout }}
+wrapper.cpu.timeout={{ karaf_wrapper_cpu_timeout }}
+
+
+# Configure wrapper custom
+{% if karaf_wrapper_custom_conf is defined %}
+{% for wrapper_custom_conf in karaf_wrapper_custom_conf %}
+{{ wrapper_custom_conf }}
+{% endfor %}
+{% endif %}
+
+
+#Configure wrapper default JVM options
+{% if karaf_wrapper_default_jvm_options is defined %}
+{% for wrapper_default_jvm_options in karaf_wrapper_default_jvm_options %}
+wrapper.java.additional.{{ karaf_wrapper_conf_last_num | int + loop.index }}={{ wrapper_default_jvm_options }}
+{% endfor %}
+{% endif %}
+
+
+#Configure wrapper additional JVM options
+{% if karaf_wrapper_additional_jvm_options is defined %}
+{% if karaf_wrapper_default_jvm_options is defined %}
+{% set karaf_wrapper_conf_last_num = karaf_wrapper_conf_last_num | int + karaf_wrapper_default_jvm_options | count %}
+{% endif %}
+{% for wrapper_additional_jvm_options in karaf_wrapper_additional_jvm_options %}
+wrapper.java.additional.{{ karaf_wrapper_conf_last_num | int + loop.index }}={{ wrapper_additional_jvm_options }}
+{% endfor %}
+{% endif %}
