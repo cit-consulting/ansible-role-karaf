@@ -7,7 +7,7 @@
   when: karaf_download_url is defined
   run_once: true
   changed_when: false
-  sudo: no
+  become: no
   tags:
     - install
 
@@ -22,7 +22,7 @@
   shell: 'getent passwd "{{ karaf_os_user_name }}" | cut -d: -f6'
   changed_when: false
   register: karaf_os_user_home
-  sudo: yes
+  become: yes
   tags:
     - install
 
@@ -34,7 +34,7 @@
   file:
     path: "{{ karaf_install_dir }}/{{ karaf_distr_name }}"
     state: directory
-  sudo: yes
+  become: yes
   when: not karaf_new_install_dir_created.stat.exists
 
 - name: "Stop Karaf service if running"
@@ -43,7 +43,7 @@
     state: stopped
   ignore_errors: True
   when: not karaf_new_install_dir_created.stat.exists or karaf_os_user_home_changed | bool
-  sudo: yes
+  become: yes
   tags:
    - install
 
@@ -51,7 +51,7 @@
   service:
     name: "{{ karaf_service_name }}"
     enabled: no
-  sudo: yes
+  become: yes
   when: karaf_os_user_home_changed | bool
   ignore_errors: True
   tags:
@@ -63,7 +63,7 @@
     home: "{{ karaf_install_dir }}/{{ karaf_distr_name }}"
     system: yes
     state: present
-  sudo: yes
+  become: yes
   when: not karaf_new_install_dir_created.stat.exists or karaf_os_user_home_changed | bool
   tags:
     - install
@@ -72,7 +72,7 @@
   unarchive:
     src: "tmp/{{ karaf_distr_name }}.{{ karaf_archive_type }}"
     dest: "{{ karaf_install_dir }}"
-  sudo: yes
+  become: yes
   when: not karaf_new_install_dir_created.stat.exists
   tags:
     - install
@@ -145,7 +145,7 @@
     - install
 
 - name: "Anjust filesystem access mode on Karaf dir"
-  sudo: yes
+  become: yes
   file:
     path: '{{ karaf_install_dir }}/{{ karaf_distr_name }}'
     owner: '{{ karaf_os_user_name }}'
@@ -179,15 +179,15 @@
   shell: '{{ karaf_home }}/bin/stop'
   ignore_errors: True
   when: not karaf_wrapper_conf_path_validation.stat.exists
-  sudo: yes
-  sudo_user: "{{ karaf_os_user_name }}"
+  become: yes
+  become_user: "{{ karaf_os_user_name }}"
   tags:
    - install
 
 - name: "First start Karaf"
   shell: 'su - {{ karaf_os_user_name }} -c {{karaf_home }}/bin/start'
   when: not karaf_wrapper_conf_path_validation.stat.exists
-  sudo: yes
+  become: yes
   tags:
    - install
 
@@ -212,16 +212,16 @@
     - '{{ karaf_connect_to_local_Karaf_instance }} "feature:install wrapper"'
     - '{{ karaf_connect_to_local_Karaf_instance }} "wrapper:install -n {{ karaf_service_name }} -d {{ karaf_service_name }} -D "{{ karaf_service_name }}""'
   when: not karaf_wrapper_conf_path_validation.stat.exists
-  sudo: yes
-  sudo_user: "{{ karaf_os_user_name }}"
+  become: yes
+  become_user: "{{ karaf_os_user_name }}"
   tags:
    - install
 
 - name: "Stop Karaf"
   shell: '{{karaf_home }}/bin/stop'
   when: not karaf_wrapper_conf_path_validation.stat.exists
-  sudo: yes
-  sudo_user: "{{ karaf_os_user_name }}"
+  become: yes
+  become_user: "{{ karaf_os_user_name }}"
   tags:
    - install
 
@@ -231,29 +231,9 @@
     state: present
     regexp: "^#?RUN_AS_USER.*$"
     line: "RUN_AS_USER={{ karaf_os_user_name }}"
-  sudo: yes
+  become: yes
   tags:
     - install
-
-#TODO remove Ansible 2.0
-- name: "Detect init system"
-  shell: 'cat /proc/1/comm'
-  sudo: yes
-  register: karaf_init_proc_cmd
-  when: ansible_service_mgr is not defined
-  changed_when: false
-  ignore_errors: True
-  tags:
-   - install
-
-#TODO remove Ansible 2.0
-- name: "Register init system fact"
-  set_fact:
-    ansible_service_mgr: '{% if karaf_init_proc_cmd.rc == 0 %}{{ karaf_init_proc_cmd.stdout }}{% else %}sysvinit{% endif %}'
-  register: karaf_init_proc_cmd
-  when: ansible_service_mgr is not defined
-  tags:
-   - install
 
 - name: "Create service simlink"
   file:
@@ -275,13 +255,22 @@
     line: "Alias={{ karaf_service_name }}.service"
   when: ansible_service_mgr is defined and ansible_service_mgr == 'systemd'
 
+- name: "Register Karaf service on systemd"
+  shell: 'systemctl enable {{ karaf_home }}/bin/{{ karaf_service_name }}.service'
+  become: yes
+  register: karaf_service_registered_on_systemd
+  when: (ansible_service_mgr is defined and ansible_service_mgr == 'systemd' and not karaf_new_install_dir_created.stat.exists)
+            or (ansible_service_mgr is defined and ansible_service_mgr == 'systemd' and karaf_os_user_home_changed | bool
+  tags:
+   - install
+
 - name: "Register Karaf service"
   service:
-    name: "{% if ansible_service_mgr is defined and ansible_service_mgr == 'systemd' %}{{ karaf_home }}/bin/{{ karaf_service_name }}.service{% else %}{{ karaf_service_name }}{% endif %}"
+    name: "{{ karaf_service_name }}"
     enabled: yes
-  sudo: yes
+  become: yes
   register: karaf_service_registered
-  changed_when: false
+  when: ansible_service_mgr is defined and ansible_service_mgr != 'systemd'
   tags:
     - install
 
@@ -289,7 +278,7 @@
   service:
     name: "{{ karaf_service_name }}"
     state: started
-  when: karaf_service_registered.changed
-  sudo: yes
+  when: karaf_service_registered.changed or karaf_service_registered_on_systemd.changed
+  become: yes
   tags:
     - install

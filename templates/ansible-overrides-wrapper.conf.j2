@@ -1,7 +1,6 @@
-# {{ ansible_managed }}
+# ansible_managed
 
 # Configure wrapper default
-set.default.JAVA_HOME={{ karaf_java_home }}
 wrapper.java.initmemory={{ karaf_java_initial_memory }}
 wrapper.java.maxmemory={{ karaf_java_max_memory }}
 wrapper.startup.timeout={{ karaf_wrapper_startup_timeout }}

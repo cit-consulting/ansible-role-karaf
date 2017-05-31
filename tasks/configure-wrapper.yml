@@ -1,5 +1,16 @@
 ---
 
+- name: "Configure wrapper 1"
+  lineinfile:
+    dest: "{{karaf_home }}/etc/{{ karaf_service_name }}-wrapper.conf"
+    state: present
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items: "{{ karaf_wrapper_conf1 }}"
+  notify: Karaf configuration changed
+  tags:
+    - config
+
 - name: "Slurp wrapper.conf file"
   shell: 'cat {{karaf_home }}/etc/{{ karaf_service_name }}-wrapper.conf'
   register: karaf_wrapper_slurpfile

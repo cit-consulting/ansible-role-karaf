@@ -30,6 +30,9 @@ karaf_log_gelf_properties:
   - { regexp: "^log4j.appender.graylog2.includeLocation.*$", line: "log4j.appender.graylog2.includeLocation=false" }
   - { regexp: "^log4j.appender.graylog2.additionalFields.*$", line: "log4j.appender.graylog2.additionalFields={{ '{{ karaf_log_gelf_additionalFields }}' if karaf_log_gelf_additionalFields is defined else '{}' }}" }
 
+karaf_wrapper_conf1:
+  - { regexp: "^#?set.default.JAVA_HOME.*$", line: "set.default.JAVA_HOME={{ karaf_java_home }}" }
+
 karaf_wrapper_default_jvm_options:
   - "-Dfile.encoding=UTF-8"
   - "-XX:MaxPermSize={{ karaf_java_max_perm_memory }}m"
