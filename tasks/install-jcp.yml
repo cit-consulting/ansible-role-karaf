@@ -94,5 +94,5 @@
   service:
     name: "{{ karaf_service_name }}"
     state: restarted
-  register: karaf_restart_cleaned_on_upgrade
+  register: karaf_restart_on_install_jcp
   when: jcp_install.changed
