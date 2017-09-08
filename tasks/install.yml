@@ -97,9 +97,9 @@
   tags:
     - install
 
-- name: "Create directory log4j2/log4j2-gelf/1.3.1.CITC4"
+- name: "Create directory log4j2/log4j2-gelf/1.3.2"
   file:
-    path: "{{ karaf_home }}/system/org/graylog2/log4j2/log4j2-gelf/1.3.1.CITC4"
+    path: "{{ karaf_home }}/system/org/graylog2/log4j2/log4j2-gelf/1.3.2"
     state: directory
   when: karaf_log_gelf_enabled
   tags:
@@ -107,8 +107,8 @@
 
 - name: "Upload Karaf gelf logging module"
   copy:
-    src: "log4j2-gelf-1.3.1.CITC4-osgi.jar"
-    dest: "{{ karaf_home }}/system/org/graylog2/log4j2/log4j2-gelf/1.3.1.CITC4/log4j2-gelf-1.3.1.CITC4-osgi.jar"
+    src: "log4j2-gelf-1.3.2.jar"
+    dest: "{{ karaf_home }}/system/org/graylog2/log4j2/log4j2-gelf/1.3.2/log4j2-gelf-1.3.2.jar"
   when: karaf_log_gelf_enabled
   tags:
     - install
@@ -120,7 +120,7 @@
     regexp: '{{ item | replace("mvn\:", "") | regex_replace("/[0-9.]+\w+?\Z", "") }}.*$'
     line: '{{ item }} = 8'
   with_items:
-    - mvn\:org.graylog2.log4j2/log4j2-gelf/1.3.1.CITC4/jar/osgi
+    - mvn\:org.graylog2.log4j2/log4j2-gelf/1.3.2
   when: karaf_log_gelf_enabled
   tags:
     - install
