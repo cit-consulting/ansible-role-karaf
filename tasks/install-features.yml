@@ -2,7 +2,7 @@
 
 - name: "Install features: Find the full features install list with versions"
   set_fact:
-    full_features_install_list_with_versions: '{% for features in karaf_features %}{{ features.name }}{{ "/" ~ features.version if features.version is defined  and features.version != "" else "" }} {% endfor %}'
+    full_features_install_list_with_versions: '{% for features in karaf_features %}{% if features.name != "" %}{{ features.name }}{{ "/" ~ features.version if features.version is defined  and features.version != "" else "" }} {% endif %}{% endfor %}'
   tags:
     - install-features
 
@@ -14,7 +14,7 @@
 
 - name: "Install features: Preparation the full features install list for grep"
   set_fact:
-    full_features_install_list_for_grep: "feature:list -i --no-format | grep '^({{ full_features_install_list_without_versions }})\\s'"
+    full_features_install_list_for_grep: "feature:list -i --no-format | grep --color never '^({{ full_features_install_list_without_versions }})\\s'"
   tags:
     - install-features
 
@@ -68,7 +68,7 @@
 - name: "Install features: Calculate features diff stage 2"
   lineinfile:
     dest: "/tmp/feature.txt"
-    regexp: '{{ item.name }}/{{ item.version|d() | regex_replace("-", ".") }}'
+    regexp: '{{ item.name if item.name != "" else "not presented" }}/{{ item.version|d() | regex_replace("-", ".") }}'
     state: absent
   with_items: "{{ karaf_features }}"
   register: karaf_calculate_feature
@@ -98,7 +98,7 @@
     line: '{{ item.0.name }}/{{ item.0.version|d() }}'
     state: present
     create: yes
-  when: karaf_install_feature_incrementaly and item.1 == ""
+  when: karaf_install_feature_incrementaly and item.0.name != "" and item.1 == ""
   with_together:
     - "{{ karaf_features }}"
     - "{{ karaf_calculate_feature.results | map(attribute='msg') | list }}"
