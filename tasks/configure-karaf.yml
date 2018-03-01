@@ -14,6 +14,17 @@
   tags:
     - config
 
+- name: "Set custom configuration values"
+  set_fact:
+    karaf_custom_configuration: |
+          {%- set items = [] -%}
+          {%- for elem in (hostvars[inventory_hostname] | select('match', 'karaf_custom_configuration.*') | map('extract', hostvars[inventory_hostname]) | list) -%}
+              {{ items.extend(elem) }}
+          {%- endfor -%}
+          {{ items | list }}
+  tags:
+    - config
+
 - name: "Apply custom configuration values"
   lineinfile:
     dest: "{{ karaf_home }}/etc/{{ item.0.file }}"
