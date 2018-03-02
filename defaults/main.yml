@@ -15,11 +15,11 @@ karaf_admin_pass: "karaf"
 # system.properties
 karaf_instance_name: "root"
 # org.apache.karaf.shell.cfg
-karaf_ssh_host: "0.0.0.0"
+karaf_ssh_host: "127.0.0.1"
 karaf_ssh_port: "8101"
 # org.apache.karaf.management.cfg
 karaf_rmi_registry_port: "1099"
-karaf_rmi_server_host: "0.0.0.0"
+karaf_rmi_server_host: "127.0.0.1"
 karaf_rmi_server_port: "44444"
 karaf_rmi_jmx_realm: "karaf"
 
