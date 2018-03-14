@@ -105,6 +105,7 @@ karaf_pause_update_features: 'no' # 'yes' or 'no'
 karaf_pause_to_ferst_start: 'no' # 'yes' or 'no'
 karaf_time_pause_to_ferst_start: '20' # 20-seconds
 karaf_timeout_to_wait_service: '15000' # 15-seconds
+karaf_timeout_to_wait_first_start: '90' # 90-seconds
 
 karaf_path_to_data_backup: "/opt/data-backup"
 

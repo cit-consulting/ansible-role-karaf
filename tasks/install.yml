@@ -199,7 +199,7 @@
 - name: "Wait for Karaf to start"
   wait_for:
     port: "{{ karaf_ssh_port }}"
-    timeout: 30
+    timeout: "{{ karaf_timeout_to_wait_first_start }}"
   when: not karaf_wrapper_conf_path_validation.stat.exists
   tags:
     - install
