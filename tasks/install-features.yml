@@ -177,9 +177,21 @@
   tags:
     - install-features
 
+- name: "Install feature: Check Karaf restart needed on feature upgrade"
+  become: yes
+  action: shell echo "Restart Karaf"
+  with_items: "{{ karaf_features }}"
+  when: (karaf_features_to_upgrade.stdout != ""
+          and karaf_features_to_upgrade.stdout|search(item.name)
+          and item.karaf_restart_on_upgrade is defined
+          and item.karaf_restart_on_upgrade == "yes")
+  register: karaf_restart_on_feature_upgrade_needed
+  tags:
+    - install-features
+
 - name: "Install features: Perform installation"
   become: yes
-  shell: '{{ karaf_connect_to_local_Karaf_instance }} "feature:install --upgrade {{ full_features_install_list_with_versions }} ; log:display -n 6 -l INFO org.apache.karaf.features.internal"'
+  shell: '{{ karaf_connect_to_local_Karaf_instance }} "feature:install {{ "--no-auto-start" if karaf_restart_on_feature_upgrade_needed.changed else "" }} --upgrade {{ full_features_install_list_with_versions }} ; log:display -n 6 -l INFO org.apache.karaf.features.internal"'
   become_user: "{{ karaf_os_user_name }}"
   register: karaf_feature_install
   changed_when: not karaf_feature_install.stdout|search("No deployment change")
@@ -191,7 +203,7 @@
 
 - name: "Pause for Install features"
   pause:
-    seconds: '5'
+    seconds: '{{ karaf_pause_for_install_feature }}'
   when: karaf_feature_install.changed
   tags:
     - install-features
@@ -218,31 +230,28 @@
   tags:
     - install-features
 
-- name: "Install feature: Check Karaf restart needed on feature upgrade"
-  become: yes
-  action: shell echo "Restart Karaf"
-  with_items: "{{ karaf_features }}"
-  when: (karaf_feature_install.changed
-          and karaf_features_to_upgrade.stdout != ""
-          and karaf_features_to_upgrade.stdout|search(item.name)
-          and item.karaf_restart_on_upgrade is defined
-          and item.karaf_restart_on_upgrade == "yes")
-  register: karaf_restart_on_feature_upgrade_needed
-  tags:
-    - install-features
-
 - name: "Install features: Restart Karaf on feature upgrade or config change"
   become: yes
   service:
     name: '{{ karaf_service_name }}'
     state: restarted
-  when: karaf_restart_on_conf_change_needed.changed or karaf_restart_on_feature_upgrade_needed.changed
+  when: (karaf_feature_install.changed and karaf_restart_on_conf_change_needed.changed) or (karaf_feature_install.changed and karaf_restart_on_feature_upgrade_needed.changed)
   register: karaf_restart_on_feature_upgrade
   tags:
     - install-features
 
 - name: "Install features: Wait for Karaf ssh port"
   wait_for: "port={{ karaf_ssh_port }} timeout=30"
+  tags:
+    - install-features
+
+- name: "Install feature: Start feature on feature install"
+  become: yes
+  shell: '{{ karaf_connect_to_local_Karaf_instance }} "feature:start {{ full_features_install_list_with_versions }}"'
+  become_user: "{{ karaf_os_user_name }}"
+  environment:
+    JAVA_HOME: "{{ karaf_java_home }}"
+  when: karaf_feature_install.changed and karaf_restart_on_feature_upgrade.changed
   tags:
     - install-features
 

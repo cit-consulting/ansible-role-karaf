@@ -134,3 +134,5 @@ karaf_jcp_files: []
 karaf_wrapper_custom_conf: []
 
 karaf_install_feature_incrementaly: 'False'
+
+karaf_pause_for_install_feature: '0'
