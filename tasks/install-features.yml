@@ -171,6 +171,7 @@
   become_user: "{{ karaf_os_user_name }}"
   register: karaf_feature_install_featuresBoot
   changed_when: not karaf_feature_install_featuresBoot.stdout|search("No deployment change")
+  failed_when: karaf_feature_install_featuresBoot.stdout|search("Error")
   when: karaf_additional_boot_features != '' and karaf_clean_cache != 'yes'
   environment:
     JAVA_HOME: "{{ karaf_java_home }}"
@@ -195,6 +196,7 @@
   become_user: "{{ karaf_os_user_name }}"
   register: karaf_feature_install
   changed_when: not karaf_feature_install.stdout|search("No deployment change")
+  failed_when: karaf_feature_install.stdout|search("Error")
   when: full_features_install_list_with_versions != ""
   environment:
     JAVA_HOME: "{{ karaf_java_home }}"
