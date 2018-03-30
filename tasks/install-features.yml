@@ -1,5 +1,28 @@
 ---
 
+- name: "Install features: Set karaf feature values"
+  set_fact:
+    karaf_features: |
+          {%- set items = [] -%}
+          {%- for elem in (hostvars[inventory_hostname] | select('match', 'karaf_features.*') | map('extract', hostvars[inventory_hostname]) | list) -%}
+              {{ items.extend(elem) }}
+          {%- endfor -%}
+          {{ items | list }}
+  tags:
+    - install-features
+
+- name: "Install features: Checking karaf feature values for errors"
+  set_fact:
+    karaf_features_errors: |
+          {%- for feature in karaf_features -%}
+            {%- if (karaf_features | selectattr('name', 'defined') | selectattr('name', 'match', feature.name) | list | length > 1 and feature.name != "") or (karaf_features | selectattr('repo', 'defined') | selectattr('repo', 'match', feature.repo | d()) | list | length > 1 and feature.name == "") -%}
+              Error {{ feature }}
+            {%- endif -%}
+          {%- endfor -%}
+  failed_when: karaf_features_errors|search("Error")
+  tags:
+    - install-features
+
 - name: "Install features: Find the full features install list with versions"
   set_fact:
     full_features_install_list_with_versions: '{% for features in karaf_features %}{% if features.name != "" %}{{ features.name }}{{ "/" ~ features.version if features.version is defined  and features.version != "" else "" }} {% endif %}{% endfor %}'
