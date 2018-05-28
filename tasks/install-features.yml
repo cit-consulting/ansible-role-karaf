@@ -313,5 +313,7 @@
   when: '{{ item.wait_service is defined and (karaf_feature_install.changed or karaf_restart_on_feature_upgrade.changed or karaf_feature_restarted.changed or karaf_features_configs_changed.changed)}}'
   with_items: "{{ karaf_features }}"
   changed_when: false
+  register: karaf_feature_wait_services
+  failed_when: karaf_feature_wait_services.stdout|search("Error")
   tags:
     - install-features
