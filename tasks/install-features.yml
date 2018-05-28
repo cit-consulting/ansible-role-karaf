@@ -66,6 +66,8 @@
   with_subelements:
     - "{{ karaf_features }}"
     - conf_files
+    - flags:
+      skip_missing: True
   register: karaf_features_configs_changed
   tags:
     - install-features
@@ -192,6 +194,8 @@
   environment:
     JAVA_HOME: "{{ karaf_java_home }}"
   with_items: "{{ karaf_features }}"
+  register: karaf_feature_add_repositories
+  failed_when: karaf_feature_add_repositories.stdout|search("Error")
   when: item.url is defined or item.repo is defined
   changed_when: false
   tags:
