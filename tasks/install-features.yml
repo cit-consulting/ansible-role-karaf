@@ -19,7 +19,7 @@
               Error {{ feature }}
             {%- endif -%}
           {%- endfor -%}
-  failed_when: karaf_features_errors|search("Error")
+  failed_when: karaf_features_errors is search("Error")
   tags:
     - install-features
 
@@ -80,7 +80,7 @@
   debug:
     msg: 'Needs clean cache on feature install/upgrade "{{ item }}"'
   with_items: "{{ karaf_features }}"
-  when: (karaf_features_to_upgrade.stdout|search(item.name)
+  when: (karaf_features_to_upgrade.stdout is search(item.name)
             and item.karaf_clean_cache_on_upgrade is defined
             and item.karaf_clean_cache_on_upgrade == "yes")
             or karaf_clean_cache == "yes"
@@ -111,7 +111,7 @@
     JAVA_HOME: "{{ karaf_java_home }}"
   with_items: "{{ karaf_features }}"
   register: karaf_feature_add_repositories
-  failed_when: karaf_feature_add_repositories.stdout|search("Error")
+  failed_when: karaf_feature_add_repositories.stdout is search("Error")
   when: item.url is defined or item.repo is defined
   changed_when: false
   tags:
@@ -148,8 +148,8 @@
   shell: '{{ karaf_connect_to_local_Karaf_instance }} "feature:install {{ "--no-auto-start" if karaf_restart_on_feature_upgrade_needed.changed else "" }} --upgrade {{ full_features_install_list_with_versions }} ; log:display -n 6 -l INFO org.apache.karaf.features.internal"'
   become_user: "{{ karaf_os_user_name }}"
   register: karaf_feature_install
-  changed_when: not karaf_feature_install.stdout|search("No deployment change")
-  failed_when: karaf_feature_install.stdout|search("Error")
+  changed_when: not karaf_feature_install.stdout is search("No deployment change")
+  failed_when: karaf_feature_install.stdout is search("Error")
   when: full_features_install_list_with_versions != ""
   environment:
     JAVA_HOME: "{{ karaf_java_home }}"
@@ -213,10 +213,10 @@
   become_user: "{{ karaf_os_user_name }}"
   environment:
     JAVA_HOME: "{{ karaf_java_home }}"
-  when: '{{ item.wait_service is defined and (karaf_feature_install.changed or karaf_feature_restarted.changed or karaf_features_configs_changed.changed)}}'
+  when: item.wait_service is defined and (karaf_feature_install.changed or karaf_feature_restarted.changed or karaf_features_configs_changed.changed)
   with_items: "{{ karaf_features }}"
   changed_when: false
   register: karaf_feature_wait_services
-  failed_when: karaf_feature_wait_services.stdout|search("Error")
+  failed_when: karaf_feature_wait_services.stdout is search("Error")
   tags:
     - install-features
