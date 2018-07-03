@@ -72,104 +72,25 @@
   tags:
     - install-features
 
-- name: "Install features: Dump installed features to file"
-  become: yes
-  shell: '{{ karaf_connect_to_local_Karaf_instance }} "{{ full_features_install_list_for_grep }}" >/tmp/feature.txt'
-  environment:
-    JAVA_HOME: "{{ karaf_java_home }}"
-  changed_when: false
-  tags:
-    - install-features
-
-- name: "Install features: Calculate features diff stage 1"
-  replace:
-    dest: "/tmp/feature.txt"
-    regexp: '(?m)^(\S+)\s+(\S+)(.*)'
-    replace: '\1/\2'
-  changed_when: false
-  tags:
-    - install-features
-
-- name: "Install features: Calculate features diff stage 2"
-  lineinfile:
-    dest: "/tmp/feature.txt"
-    regexp: '{{ item.name if item.name != "" else "not presented" }}/{{ item.version|d() | regex_replace("-", ".") }}'
-    state: absent
-  with_items: "{{ karaf_features }}"
-  register: karaf_calculate_feature
-  changed_when: false
-  tags:
-    - install-features
-
-- name: "Install features: Get features to upgrade"
-  shell: 'cat /tmp/feature.txt'
-  register: karaf_features_to_upgrade
-  changed_when: false
-  tags:
-    - install-features
-
-- name: "Install features: Delete feature_Incrementaly.txt"
-  file:
-    path: '/tmp/feature_Incrementaly.txt'
-    state: absent
-  changed_when: false
-  when: karaf_install_feature_incrementaly
-  tags:
-    - install-features
-
-- name: "Install features: Calculate features to install Incrementaly"
-  lineinfile:
-    dest: "/tmp/feature_Incrementaly.txt"
-    line: '{{ item.0.name }}/{{ item.0.version|d() }}'
-    state: present
-    create: yes
-  when: karaf_install_feature_incrementaly and item.0.name != "" and item.1 == ""
-  with_together:
-    - "{{ karaf_features }}"
-    - "{{ karaf_calculate_feature.results | map(attribute='msg') | list }}"
-  changed_when: false
-  tags:
-    - install-features
-
-- name: "Install features: Get features to install Incrementaly"
-  shell: 'cat /tmp/feature_Incrementaly.txt'
-  register: karaf_features_to_incrementaly_instaled
-  when: karaf_install_feature_incrementaly
-  changed_when: false
-  ignore_errors: True
+- include: "calculate-feature-diff.yml"
   tags:
     - install-features
 
 - name: "Install features: Check clean cache needed on feature upgrade"
-  become: yes
-  file:
-    path: '{{karaf_home }}/data/clean_cache'
-    state: touch
-    mode: 0755
-  register: karaf_cache_cleaned_on_upgrade
+  debug:
+    msg: 'Needs clean cache on feature install/upgrade "{{ item }}"'
   with_items: "{{ karaf_features }}"
   when: (karaf_features_to_upgrade.stdout|search(item.name)
             and item.karaf_clean_cache_on_upgrade is defined
             and item.karaf_clean_cache_on_upgrade == "yes")
             or karaf_clean_cache == "yes"
+  changed_when: True
+  notify: Karaf clean cache
   tags:
     - install-features
 
-- name: "Install features: Set karaf features to upgrade on NULL"
-  set_fact:
-    karaf_features_to_upgrade:
-      stdout: ''
-      stdout_lines: ''
-  when: karaf_cache_cleaned_on_upgrade.changed
-  tags:
-    - install-features
-
-- name: "Install features: Restart Karaf for Clean cache"
-  become: yes
-  service:
-    name: '{{ karaf_service_name }}'
-    state: restarted
-  when: karaf_cache_cleaned_on_upgrade.changed
+- name: "Force all notified handlers before feature installation"
+  meta: flush_handlers
   tags:
     - install-features
 
@@ -178,12 +99,7 @@
   tags:
     - install-features
 
-- name: "Install features: Set karaf feature install incrementaly list"
-  set_fact:
-    full_features_install_list_with_versions: "{{ karaf_features_to_incrementaly_instaled.stdout_lines  | join (' ') }}"
-  when: (karaf_features_to_incrementaly_instaled.stdout_lines is defined
-          and karaf_cache_cleaned_on_upgrade is defined
-          and not karaf_cache_cleaned_on_upgrade.changed)
+- include: "calculate-feature-diff.yml"
   tags:
     - install-features
 
@@ -201,28 +117,18 @@
   tags:
     - install-features
 
-- name: "Install features: Perform installation featuresBoot"
-  become: yes
-  shell: '{{ karaf_connect_to_local_Karaf_instance }} "feature:install --upgrade {{ karaf_additional_boot_features | regex_replace(",", "") }} ; log:display -n 6 -l INFO org.apache.karaf.features.internal"'
-  become_user: "{{ karaf_os_user_name }}"
-  register: karaf_feature_install_featuresBoot
-  changed_when: not karaf_feature_install_featuresBoot.stdout|search("No deployment change")
-  failed_when: karaf_feature_install_featuresBoot.stdout|search("Error")
-  when: karaf_additional_boot_features != '' and karaf_clean_cache != 'yes'
-  environment:
-    JAVA_HOME: "{{ karaf_java_home }}"
-  tags:
-    - install-features
-
 - name: "Install feature: Check Karaf restart needed on feature upgrade"
   become: yes
-  action: shell echo "Restart Karaf"
+  debug:
+    msg: 'Needs Karaf restart on feature install/upgrade "{{ item }}"'
   with_items: "{{ karaf_features }}"
   when: (karaf_features_to_upgrade.stdout != ""
           and karaf_features_to_upgrade.stdout|search(item.name)
           and item.karaf_restart_on_upgrade is defined
           and item.karaf_restart_on_upgrade == "yes")
   register: karaf_restart_on_feature_upgrade_needed
+  changed_when: True
+  notify: Karaf restart
   tags:
     - install-features
 #
@@ -272,20 +178,17 @@
 
 - name: "Install features: Check Karaf restart needed on feature config change"
   become: yes
-  action: shell echo "Restart Karaf to changed feature configs"
+  debug:
+    msg: 'Needs Karaf restart on feature config change'
   when: (item.changed and item.item[0].karaf_on_config_change is defined and item.item[0].karaf_on_config_change == "karaf")
   with_items: '{{ karaf_features_configs_changed.results }}'
-  register: karaf_restart_on_conf_change_needed
+  changed_when: True
+  notify: Karaf restart
   tags:
     - install-features
 
-- name: "Install features: Restart Karaf on feature upgrade or config change"
-  become: yes
-  service:
-    name: '{{ karaf_service_name }}'
-    state: restarted
-  when: (karaf_feature_install.changed and karaf_restart_on_conf_change_needed.changed) or (karaf_feature_install.changed and karaf_restart_on_feature_upgrade_needed.changed)
-  register: karaf_restart_on_feature_upgrade
+- name: "Force all notified handlers after feature installation"
+  meta: flush_handlers
   tags:
     - install-features
 
@@ -300,7 +203,7 @@
   become_user: "{{ karaf_os_user_name }}"
   environment:
     JAVA_HOME: "{{ karaf_java_home }}"
-  when: karaf_feature_install.changed and karaf_restart_on_feature_upgrade.changed
+  when: karaf_feature_install.changed
   tags:
     - install-features
 
@@ -310,7 +213,7 @@
   become_user: "{{ karaf_os_user_name }}"
   environment:
     JAVA_HOME: "{{ karaf_java_home }}"
-  when: '{{ item.wait_service is defined and (karaf_feature_install.changed or karaf_restart_on_feature_upgrade.changed or karaf_feature_restarted.changed or karaf_features_configs_changed.changed)}}'
+  when: '{{ item.wait_service is defined and (karaf_feature_install.changed or karaf_feature_restarted.changed or karaf_features_configs_changed.changed)}}'
   with_items: "{{ karaf_features }}"
   changed_when: false
   register: karaf_feature_wait_services

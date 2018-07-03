@@ -7,7 +7,7 @@
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items: "{{ karaf_wrapper_conf1 }}"
-  notify: Karaf configuration changed
+  notify: Karaf restart
   tags:
     - config
 
@@ -46,6 +46,6 @@
     group: '{{ karaf_os_user_name }}'
     mode: 0644
     backup: yes
-  notify: Karaf configuration changed
+  notify: Karaf restart
   tags:
     - config

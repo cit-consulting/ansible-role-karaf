@@ -1,6 +1,6 @@
 ---
 
-# Install ESB
+# Install Karaf
 
 - name: "Download Karaf distribution"
   local_action:  get_url url={{ karaf_download_url }} dest=tmp/{{ karaf_distr_name }}.{{ karaf_archive_type }}
@@ -47,16 +47,6 @@
   tags:
    - install
 
-- name: "Unregister Karaf service on Karaf home changed"
-  service:
-    name: "{{ karaf_service_name }}"
-    enabled: no
-  become: yes
-  when: karaf_os_user_home_changed | bool
-  ignore_errors: True
-  tags:
-    - install
-
 - name: "Create Karaf system user"
   user:
     name: "{{ karaf_os_user_name }}"
@@ -77,78 +67,6 @@
   tags:
     - install
 
-- name: "Configure logging in org.ops4j.pax.logging.cfg"
-  lineinfile:
-    dest: "{{karaf_home }}/etc/org.ops4j.pax.logging.cfg"
-    state: present
-    regexp: "{{ item.regexp }}"
-    line: "{{ item.line }}"
-  with_items: "{{ karaf_logging_properties }}"
-  tags:
-    - install
-
-- name: "Configure logging rolling strategy in org.ops4j.pax.logging.cfg"
-  lineinfile:
-    dest: "{{karaf_home }}/etc/org.ops4j.pax.logging.cfg"
-    state: present
-    insertafter: "{{ item.regexp }}"
-    line: "{{ item.line }}"
-  with_items: "{{ karaf_logging_rolling_strategy }}"
-  tags:
-    - install
-
-- name: "Create directory log4j2/log4j2-gelf/1.3.2"
-  file:
-    path: "{{ karaf_home }}/system/org/graylog2/log4j2/log4j2-gelf/1.3.2"
-    state: directory
-  when: karaf_log_gelf_enabled
-  tags:
-    - install
-
-- name: "Upload Karaf gelf logging module"
-  copy:
-    src: "log4j2-gelf-1.3.2.jar"
-    dest: "{{ karaf_home }}/system/org/graylog2/log4j2/log4j2-gelf/1.3.2/log4j2-gelf-1.3.2.jar"
-  when: karaf_log_gelf_enabled
-  tags:
-    - install
-
-- name: "Configure gelf logging in startup.properties"
-  lineinfile:
-    dest: "{{ karaf_home }}/etc/startup.properties"
-    state: present
-    regexp: '{{ item | replace("mvn\:", "") | regex_replace("/[0-9.]+\w+?\Z", "") }}.*$'
-    line: '{{ item }} = 8'
-  with_items:
-    - mvn\:org.graylog2.log4j2/log4j2-gelf/1.3.2
-  when: karaf_log_gelf_enabled
-  tags:
-    - install
-
-- name: "Add log4j2.status and log4j2.packages on gelf logging in org.ops4j.pax.logging.cfg"
-  lineinfile:
-    dest: "{{karaf_home }}/etc/org.ops4j.pax.logging.cfg"
-    state: present
-    insertbefore: BOF
-    line: "{{ item }}"
-  with_items:
-    - "log4j2.packages = org.graylog2.log4j2"
-    - "#log4j2.status = debug"
-  when: karaf_log_gelf_enabled and karaf_log_gelf_host != ''
-  tags:
-    - install
-
-- name: "Configure gelf logging in org.ops4j.pax.logging.cfg"
-  lineinfile:
-    dest: "{{karaf_home }}/etc/org.ops4j.pax.logging.cfg"
-    state: present
-    regexp: "{{ item.regexp }}"
-    line: "{{ item.line }}"
-  with_items: "{{ karaf_log_gelf_properties }}"
-  when: karaf_log_gelf_enabled and karaf_log_gelf_host != ''
-  tags:
-    - install
-
 - name: "Anjust filesystem access mode on Karaf dir"
   become: yes
   file:
@@ -159,9 +77,6 @@
     state: 'directory'
   changed_when: false
 
-- include: "configure-karaf.yml"
-  when: not karaf_new_install_dir_created.stat.exists
-
 # Install service wrapper
 - name: "Check wrapper.conf availability"
   stat:
@@ -169,6 +84,7 @@
   register: karaf_wrapper_conf_path_validation
   tags:
     - install
+    - wrapper
 
 - name: "Set environment for karaf"
   lineinfile:
@@ -195,6 +111,7 @@
   become: yes
   tags:
    - install
+   - wrapper
 
 - name: "Wait for Karaf to start"
   wait_for:
@@ -203,6 +120,7 @@
   when: not karaf_wrapper_conf_path_validation.stat.exists
   tags:
     - install
+    - wrapper
 
 - name: "Pause for Karaf to start "
   pause:
@@ -210,6 +128,7 @@
   when: not karaf_wrapper_conf_path_validation.stat.exists and karaf_pause_to_ferst_start == "yes"
   tags:
     - install
+    - wrapper
 
 - name: "Generate service script"
   shell: "{{ item }}"
@@ -221,36 +140,18 @@
   become_user: "{{ karaf_os_user_name }}"
   tags:
    - install
+   - wrapper
 
-- name: "Stop Karaf"
-  shell: '{{karaf_home }}/bin/stop'
+- name: "Clean cache on wrapper installation"
+  become: yes
+  file:
+    path: '{{karaf_home }}/data/clean_cache'
+    state: touch
+    mode: 0755
   when: not karaf_wrapper_conf_path_validation.stat.exists
-  become: yes
-  become_user: "{{ karaf_os_user_name }}"
-  tags:
-   - install
-
-- name: "Configure service user"
-  lineinfile:
-    dest: "{{ karaf_home }}/bin/{{ karaf_service_link_name }}"
-    state: present
-    regexp: "^#?RUN_AS_USER.*$"
-    line: "RUN_AS_USER={{ karaf_os_user_name }}"
-  become: yes
   tags:
     - install
-
-- name: "Create service simlink"
-  file:
-    src: "{{karaf_home }}/bin/{{ karaf_service_link_name }}"
-    dest: "/etc/init.d/{{ karaf_service_name }}"
-    state: link
-  when: ansible_service_mgr is defined and ansible_service_mgr != 'systemd'
-  tags:
-   - install
-
-- include: "configure-wrapper.yml"
-  when: not karaf_wrapper_conf_path_validation.stat.exists
+    - wrapper
 
 - name: "Patch wrapper systemd unit"
   lineinfile:
@@ -259,30 +160,16 @@
     regexp: "Alias\\s*="
     line: "Alias={{ karaf_service_name }}.service"
   when: ansible_service_mgr is defined and ansible_service_mgr == 'systemd'
+  tags:
+    - install
+    - service
+    - wrapper
 
-- name: "Register Karaf service on systemd"
-  shell: 'systemctl enable {{ karaf_home }}/bin/{{ karaf_service_name }}.service'
+- name: "Stop Karaf"
+  shell: '{{karaf_home }}/bin/stop'
+  when: not karaf_wrapper_conf_path_validation.stat.exists
   become: yes
-  register: karaf_service_registered_on_systemd
-  when: (ansible_service_mgr is defined and ansible_service_mgr == 'systemd' and not karaf_new_install_dir_created.stat.exists)
-            or (ansible_service_mgr is defined and ansible_service_mgr == 'systemd' and karaf_os_user_home_changed | bool)
+  become_user: "{{ karaf_os_user_name }}"
   tags:
    - install
-
-- name: "Register Karaf service"
-  service:
-    name: "{{ karaf_service_name }}"
-    enabled: yes
-  become: yes
-  register: karaf_service_registered
-  when: ansible_service_mgr is defined and ansible_service_mgr != 'systemd'
-  tags:
-    - install
-
-- name: "Start Karaf service"
-  service:
-    name: "{{ karaf_service_name }}"
-    state: started
-  become: yes
-  tags:
-    - install
+   - wrapper

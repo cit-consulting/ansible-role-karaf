@@ -86,13 +86,6 @@
     state: 'absent'
   with_items: '{{ karaf_jcp_files }}'
   when: jcp_install.changed and item is defined
+  notify: Karaf restart
   tags:
     - installJCP
-
-- name: "Restart Karaf for Install JCP"
-  become: yes
-  service:
-    name: "{{ karaf_service_name }}"
-    state: restarted
-  register: karaf_restart_on_install_jcp
-  when: jcp_install.changed

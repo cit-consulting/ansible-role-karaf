@@ -1,5 +1,78 @@
 ---
 
+- name: "Configure logging in org.ops4j.pax.logging.cfg"
+  lineinfile:
+    dest: "{{karaf_home }}/etc/org.ops4j.pax.logging.cfg"
+    state: present
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items: "{{ karaf_logging_properties }}"
+  tags:
+    - config
+
+- name: "Configure logging rolling strategy in org.ops4j.pax.logging.cfg"
+  lineinfile:
+    dest: "{{karaf_home }}/etc/org.ops4j.pax.logging.cfg"
+    state: present
+    insertafter: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items: "{{ karaf_logging_rolling_strategy }}"
+  tags:
+    - config
+
+- name: "Create directory log4j2/log4j2-gelf/1.3.2"
+  file:
+    path: "{{ karaf_home }}/system/org/graylog2/log4j2/log4j2-gelf/1.3.2"
+    state: directory
+  when: karaf_log_gelf_enabled
+  tags:
+    - config
+
+- name: "Upload Karaf gelf logging module"
+  copy:
+    src: "log4j2-gelf-1.3.2.jar"
+    dest: "{{ karaf_home }}/system/org/graylog2/log4j2/log4j2-gelf/1.3.2/log4j2-gelf-1.3.2.jar"
+  when: karaf_log_gelf_enabled
+  tags:
+    - config
+
+- name: "Configure gelf logging in startup.properties"
+  lineinfile:
+    dest: "{{ karaf_home }}/etc/startup.properties"
+    state: present
+    regexp: '{{ item | replace("mvn\:", "") | regex_replace("/[0-9.]+\w+?\Z", "") }}.*$'
+    line: '{{ item }} = 8'
+  with_items:
+    - mvn\:org.graylog2.log4j2/log4j2-gelf/1.3.2
+  when: karaf_log_gelf_enabled
+  notify: Karaf clean cache
+  tags:
+    - config
+
+- name: "Add log4j2.status and log4j2.packages on gelf logging in org.ops4j.pax.logging.cfg"
+  lineinfile:
+    dest: "{{karaf_home }}/etc/org.ops4j.pax.logging.cfg"
+    state: present
+    insertbefore: BOF
+    line: "{{ item }}"
+  with_items:
+    - "log4j2.packages = org.graylog2.log4j2"
+    - "#log4j2.status = debug"
+  when: karaf_log_gelf_enabled and karaf_log_gelf_host != ''
+  tags:
+    - config
+
+- name: "Configure gelf logging in org.ops4j.pax.logging.cfg"
+  lineinfile:
+    dest: "{{karaf_home }}/etc/org.ops4j.pax.logging.cfg"
+    state: present
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items: "{{ karaf_log_gelf_properties }}"
+  when: karaf_log_gelf_enabled and karaf_log_gelf_host != ''
+  tags:
+    - config
+
 - name: "Apply base configuration values"
   lineinfile:
     dest: "{{ karaf_home }}/etc/{{ item.0.file }}"
@@ -10,7 +83,7 @@
     - "{{ karaf_base_configuration }}"
     - params
   when: item.1.value is defined and item.1.value != '_UNDEFINED_'
-  notify: Karaf configuration changed
+  notify: Karaf restart
   tags:
     - config
 
@@ -39,7 +112,7 @@
     - "{{ karaf_custom_configuration }}"
     - params
   when: item.1.value is defined and item.1.value != '_UNDEFINED_'
-  notify: Karaf configuration changed
+  #TODO: Условный перезапуск карафа karaf_restart_on_change
   tags:
     - config
 
@@ -52,7 +125,7 @@
     - "{{ karaf_multiline_custom_configuration }}"
     - params
   when: item.1.value is defined and item.1.value != '_UNDEFINED_'
-  notify: Karaf configuration changed
+  #TODO: Условный перезапуск карафа karaf_restart_on_change
   tags:
     - config
 
@@ -62,7 +135,7 @@
     regexp: '(#?[ \t]*jre-1.[\d\d])([ \t\w\d:/@\.=,\-]+)'
     replace: '\1={{ karaf_jre_properties }}, '
   when: karaf_jre_properties != ''
-  notify: Karaf configuration changed
+  notify: Karaf restart
   tags:
     - config
 
@@ -73,7 +146,7 @@
     replace: ' {{ item.prop }};{{ item.value }}, '
   with_items: "{{ karaf_custom_jre_properties }}"
   when: item.value is defined and item.value != '_UNDEFINED_'
-  notify: Karaf configuration changed
+  notify: Karaf restart
   tags:
     - config
 
@@ -81,7 +154,7 @@
   lineinfile:
     dest: "{{ karaf_home }}/etc/shell.init.script"
     line: 'feature:restart = { feature:stop $args; feature:start $args; };'
-  notify: Karaf configuration changed
+  notify: Karaf restart
   tags:
     - config
 
@@ -91,6 +164,33 @@
     regexp: '(^#?[ \t]*featuresBoot =)([ \t\w\d:/@\.=,\-]+)'
     replace: '\1 {{ karaf_additional_boot_features }}, '
   when: karaf_additional_boot_features != ''
-  notify: Karaf configuration changed
+  notify: Karaf clean cache
+  tags:
+    - config
+
+- name: "Set overrides configuration values"
+  set_fact:
+    karaf_overrides_entry: |
+          {%- set items = [] -%}
+          {%- for elem in (hostvars[inventory_hostname] | select('match', 'karaf_overrides_entry.*') | map('extract', hostvars[inventory_hostname]) | list) -%}
+              {{ items.extend(elem) }}
+          {%- endfor -%}
+          {{ items | list }}
+  tags:
+    - config
+
+- name: "Apply overrides configuration values"
+  lineinfile:
+    dest: "{{ karaf_home }}/etc/overrides.properties"
+    state: present
+    regexp: "{{ item }}"
+    line: "{{ item }}"
+    owner: "{{ karaf_os_user_name }}"
+    group: "{{ karaf_os_user_name }}"
+    mode: 0644
+    create: yes
+  with_items: "{{ karaf_overrides_entry }}"
+  when: item is defined and item != ''
+  notify: Karaf clean cache
   tags:
     - config

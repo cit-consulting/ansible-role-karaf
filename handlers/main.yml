@@ -1,10 +1,16 @@
 ---
 
-- name: "Karaf configuration changed"
+- name: "Karaf clean cache"
+  become: yes
+  file:
+    path: '{{karaf_home }}/data/clean_cache'
+    state: touch
+    mode: 0755
+  when: karaf_clean_data == 'no' or karaf_delete_all == "no"
+  notify: Karaf restart
+
+- name: "Karaf restart"
+  become: yes
   service:
     name: '{{ karaf_service_name }}'
     state: restarted
-  become: yes
-  when: karaf_clean_cache == 'no' and karaf_clean_all == 'no'
-            and karaf_restart_on_install_jcp is defined and not karaf_restart_on_install_jcp.changed
-            and karaf_restart_on_feature_upgrade is defined and not karaf_restart_on_feature_upgrade.changed

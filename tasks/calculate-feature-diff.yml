@@ -1,0 +1,77 @@
+---
+
+- name: "Install features: Dump installed features to file"
+  become: yes
+  shell: '{{ karaf_connect_to_local_Karaf_instance }} "{{ full_features_install_list_for_grep }}" >/tmp/feature.txt'
+  environment:
+    JAVA_HOME: "{{ karaf_java_home }}"
+  changed_when: false
+  tags:
+    - calculate-features
+
+- name: "Install features: Calculate features diff stage 1"
+  replace:
+    dest: "/tmp/feature.txt"
+    regexp: '(?m)^(\S+)\s+(\S+)(.*)'
+    replace: '\1/\2'
+  changed_when: false
+  tags:
+    - calculate-features
+
+- name: "Install features: Calculate features diff stage 2"
+  lineinfile:
+    dest: "/tmp/feature.txt"
+    regexp: '{{ item.name if item.name != "" else "not presented" }}/{{ item.version|d() | regex_replace("-", ".") }}'
+    state: absent
+  with_items: "{{ karaf_features }}"
+  register: karaf_calculate_feature
+  changed_when: false
+  tags:
+    - calculate-features
+
+- name: "Install features: Get features to upgrade"
+  shell: 'cat /tmp/feature.txt'
+  register: karaf_features_to_upgrade
+  changed_when: false
+  tags:
+    - calculate-features
+
+- name: "Install features: Delete feature_Incrementaly.txt"
+  file:
+    path: '/tmp/feature_Incrementaly.txt'
+    state: absent
+  changed_when: false
+  when: karaf_install_feature_incrementaly
+  tags:
+    - calculate-features
+
+- name: "Install features: Calculate features to install Incrementaly"
+  lineinfile:
+    dest: "/tmp/feature_Incrementaly.txt"
+    line: '{{ item.0.name }}/{{ item.0.version|d() }}'
+    state: present
+    create: yes
+  when: karaf_install_feature_incrementaly and item.0.name != "" and item.1 == ""
+  with_together:
+    - "{{ karaf_features }}"
+    - "{{ karaf_calculate_feature.results | map(attribute='msg') | list }}"
+  changed_when: false
+  tags:
+    - calculate-features
+
+- name: "Install features: Get features to install Incrementaly"
+  shell: 'cat /tmp/feature_Incrementaly.txt'
+  register: karaf_features_to_incrementaly_instaled
+  when: karaf_install_feature_incrementaly
+  changed_when: false
+  ignore_errors: True
+  tags:
+    - calculate-features
+
+- name: "Install features: Set karaf feature install incrementaly list"
+  set_fact:
+    full_features_install_list_with_versions: "{{ karaf_features_to_incrementaly_instaled.stdout_lines  | join (' ') }}"
+  when: karaf_features_to_incrementaly_instaled.stdout_lines is defined
+  tags:
+    - install-features
+
