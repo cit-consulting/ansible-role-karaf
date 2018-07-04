@@ -169,10 +169,14 @@
   set_fact:
     karaf_overrides_entry: |
           {%- set items = [] -%}
-          {%- for elem in (hostvars[inventory_hostname] | select('match', 'karaf_overrides_entry.*') | map('extract', hostvars[inventory_hostname]) | list) -%}
+          {%- set items1 = [] -%}
+          {%- for elem in (hostvars[inventory_hostname] | select('match', 'karaf_features.*') | map('extract', hostvars[inventory_hostname])) -%}
+              {{ items.extend(elem | selectattr('karaf_overrides_entry', 'defined') | map(attribute='karaf_overrides_entry')) }}
+          {%- endfor -%}
+          {%- for elem in (hostvars[inventory_hostname] | select('match', 'karaf_overrides_entry.*') | map('extract', hostvars[inventory_hostname])) -%}
               {{ items.extend(elem) }}
           {%- endfor -%}
-          {{ items | list }}
+          {{ items  | flatten | unique | sort }}
   tags:
     - config
 
@@ -180,7 +184,7 @@
   lineinfile:
     dest: "{{ karaf_home }}/etc/overrides.properties"
     state: present
-    regexp: "{{ item }}"
+    regexp: '{{ item | regex_search("^.*\/\d\d?.\d\d?.") }}'
     line: "{{ item }}"
     owner: "{{ karaf_os_user_name }}"
     group: "{{ karaf_os_user_name }}"
