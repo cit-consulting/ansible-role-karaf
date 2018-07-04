@@ -54,10 +54,7 @@
     dest: "{{karaf_home }}/etc/org.ops4j.pax.logging.cfg"
     state: present
     insertbefore: BOF
-    line: "{{ item }}"
-  with_items:
-    - "log4j2.packages = org.graylog2.log4j2"
-    - "#log4j2.status = debug"
+    line: "log4j2.packages = org.graylog2.log4j2"
   when: karaf_log_gelf_enabled and karaf_log_gelf_host != ''
   tags:
     - config
