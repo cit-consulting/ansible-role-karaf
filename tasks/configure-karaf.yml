@@ -54,6 +54,7 @@
     dest: "{{karaf_home }}/etc/org.ops4j.pax.logging.cfg"
     state: present
     insertbefore: BOF
+    regexp: "log4j2.packages = org.graylog2.log4j2"
     line: "log4j2.packages = org.graylog2.log4j2"
   when: karaf_log_gelf_enabled and karaf_log_gelf_host != ''
   tags:
