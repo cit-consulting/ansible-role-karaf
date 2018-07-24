@@ -62,7 +62,7 @@
 - name: "Copy CryptoPro files"
   copy:
     src: '/tmp/{{ karaf_jcp_version }}/jcp-{{ karaf_jcp_version }}/{{ item }}'
-    dest: '{{ karaf_home }}/lib/ext/{{ item | regex_replace("^.*/(.*)$", "\\1") }}'
+    dest: '{{ karaf_home }}/lib/ext/{{ item | regex_replace("^.*/(.*)$", "\1") }}'
     remote_src: True
   with_items: '{{ karaf_jcp_files }}'
   when: jcp_install.changed and item is defined
