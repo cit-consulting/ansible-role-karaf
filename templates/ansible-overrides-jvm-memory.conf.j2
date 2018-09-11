@@ -1,0 +1,9 @@
+# ansible_managed
+
+#Configure wrapper additional JVM memory
+{% if karaf_wrapper_additional_jvm_memory is defined %}
+{% set karaf_wrapper_conf_last_num = karaf_wrapper_conf_last_num | int + karaf_wrapper_default_jvm_options | count + karaf_wrapper_additional_jvm_options | count %}
+{% for wrapper_additional_jvm_memory in karaf_wrapper_additional_jvm_memory %}
+wrapper.java.additional.{{ karaf_wrapper_conf_last_num | int + loop.index }}={{ wrapper_additional_jvm_memory }}
+{% endfor %}
+{% endif %}
