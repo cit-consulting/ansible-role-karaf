@@ -145,7 +145,7 @@
 
 - name: "Install features: Perform installation"
   become: yes
-  shell: '{{ karaf_connect_to_local_Karaf_instance }} "feature:install {{ "--no-auto-start" if karaf_restart_on_feature_upgrade_needed.changed else "" }} --upgrade {{ full_features_install_list_with_versions }} ; log:display -n 6 -l INFO org.apache.karaf.features.internal"'
+  shell: '{{ karaf_connect_to_local_Karaf_instance }} "feature:install {{ "--no-auto-start --no-auto-refresh" if karaf_restart_on_feature_upgrade_needed.changed else "" }} --upgrade {{ full_features_install_list_with_versions }} ; log:display -n 6 -l INFO org.apache.karaf.features.internal"'
   become_user: "{{ karaf_os_user_name }}"
   register: karaf_feature_install
   changed_when: not karaf_feature_install.stdout is search("No deployment change")
@@ -203,7 +203,7 @@
   become_user: "{{ karaf_os_user_name }}"
   environment:
     JAVA_HOME: "{{ karaf_java_home }}"
-  when: karaf_feature_install.changed
+  when: karaf_restart_on_feature_upgrade_needed.changed
   tags:
     - install-features
 
