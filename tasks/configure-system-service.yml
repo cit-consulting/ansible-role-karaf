@@ -29,6 +29,15 @@
   tags:
    - service
 
+- name: "Patch wrapper systemd unit: Set User"
+  lineinfile:
+    dest: "{{ karaf_home }}/bin/{{ karaf_service_name }}.service"
+    state: present
+    regexp: 'User={{ karaf_service_name }}'
+    insertafter: 'Type=forking'
+    line: 'User={{ karaf_service_name }}'
+  when: ansible_service_mgr is defined and ansible_service_mgr == 'systemd'
+
 - name: "Register Karaf service on systemd"
   shell: 'systemctl enable {{ karaf_home }}/bin/{{ karaf_service_name }}.service'
   become: yes
