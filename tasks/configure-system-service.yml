@@ -36,7 +36,17 @@
     regexp: 'User={{ karaf_service_name }}'
     insertafter: 'Type=forking'
     line: 'User={{ karaf_service_name }}'
+  register: karaf_patch_wrapper_systemd_unit
   when: ansible_service_mgr is defined and ansible_service_mgr == 'systemd'
+  tags:
+    - service
+
+- name: "Just force systemd to reread configs"
+  systemd:
+    daemon_reload: yes
+  when: karaf_patch_wrapper_systemd_unit is defined and karaf_patch_wrapper_systemd_unit is changed
+  tags:
+   - service
 
 - name: "Register Karaf service on systemd"
   shell: 'systemctl enable {{ karaf_home }}/bin/{{ karaf_service_name }}.service'
