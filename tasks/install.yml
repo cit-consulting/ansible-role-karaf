@@ -67,6 +67,14 @@
   tags:
     - install
 
+- name: "Upload Karaf client patch"
+  copy:
+    src: "org.apache.karaf.client-4.2.1.jar"
+    dest: "{{ karaf_home }}/system/org/apache/karaf/org.apache.karaf.client/{{ karaf_distr_version }}/org.apache.karaf.client-{{ karaf_distr_version }}.jar"
+  when: not karaf_new_install_dir_created.stat.exists and karaf_distr_version is version_compare("4.2.1", ">")
+  tags:
+    - install
+
 - name: "Anjust filesystem access mode on Karaf dir"
   become: yes
   file:
