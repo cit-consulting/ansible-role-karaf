@@ -148,6 +148,18 @@
   tags:
     - config
 
+- name: 'Configure custom jre.properties by version'
+  lineinfile:
+    dest: "{{ karaf_home }}/etc/jre.properties"
+    insertafter: 'jre-1.{{ item.java_version }}.*'
+    line: ' {{ item.prop }};{{ item.value }}, \'
+    state: present
+  with_items: "{{ karaf_custom_jre_properties_by_version }}"
+  when: item.java_version is defined and item.java_version != '_UNDEFINED_' and item.value is defined and item.value != '_UNDEFINED_'
+  notify: Karaf restart
+  tags:
+    - config
+
 - name: 'Configure shell'
   lineinfile:
     dest: "{{ karaf_home }}/etc/shell.init.script"
