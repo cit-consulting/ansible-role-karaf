@@ -29,8 +29,8 @@ karaf_wrapper_conf1:
 
 karaf_wrapper_default_jvm_options:
   - "-Dfile.encoding=UTF-8"
-  - "-XX:MaxPermSize={{ karaf_java_max_perm_memory }}m"
   - "-Djava.io.tmpdir=%KARAF_DATA%/tmp"
+#  - "-XX:MaxPermSize={{ karaf_java_max_perm_memory }}m"
 
 karaf_environment_default_options:
   - { regexp: "export JAVA_HOME.*$", line: 'export JAVA_HOME="{{ karaf_java_home }}"' }

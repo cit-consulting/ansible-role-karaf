@@ -36,6 +36,14 @@
   tags:
     - config
 
+# TODO Remove on close https://github.com/eclipse-ee4j/jaxb-api/issues/78
+- name: "Upload jakarta patch"
+  copy:
+    src: "jakarta.xml.bind-api-2.3.2.CITC_1.jar"
+    dest: "{{ karaf_home }}/lib/jdk9plus/jakarta.xml.bind-api-2.3.2.jar"
+  tags:
+    - config
+
 - name: "Configure gelf logging in startup.properties"
   lineinfile:
     dest: "{{ karaf_home }}/etc/startup.properties"
