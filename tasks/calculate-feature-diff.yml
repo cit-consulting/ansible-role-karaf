@@ -5,6 +5,8 @@
   shell: '{{ karaf_connect_to_local_Karaf_instance }} "{{ full_features_install_list_for_grep }}" >/tmp/feature.txt'
   environment:
     JAVA_HOME: "{{ karaf_java_home }}"
+  vars:
+    ansible_ssh_pipelining: no
   changed_when: false
   tags:
     - calculate-features
