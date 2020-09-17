@@ -51,7 +51,7 @@ karaf_base_configuration:
   - file: "org.apache.karaf.management.cfg"
     params:
       - { prop: "rmiRegistryPort", value: "{{ karaf_rmi_registry_port }}" }
-      - { prop: "rmiRegistryHost", value: "{{ karaf_rmi_server_host }}" }
+      - { prop: "rmiRegistryHost", value: "{{ karaf_rmi_registr_host }}" }
       - { prop: "rmiServerPort", value: "{{ karaf_rmi_server_port }}" }
       - { prop: "rmiServerHost", value: "{{ karaf_rmi_server_host }}" }
       - { prop: "jmxRealm", value: "{{ karaf_rmi_jmx_realm }}" }
