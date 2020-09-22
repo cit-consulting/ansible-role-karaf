@@ -114,6 +114,8 @@
   failed_when: karaf_feature_add_repositories.stdout is search("Error")
   when: item.url is defined or item.repo is defined
   changed_when: false
+  vars:
+    ansible_ssh_pipelining: no
   tags:
     - install-features
 
@@ -140,6 +142,8 @@
 #    JAVA_HOME: "{{ karaf_java_home }}"
 #  when: karaf_features_to_upgrade.stdout != "" and karaf_restart_on_feature_upgrade_needed is defined and karaf_restart_on_feature_upgrade_needed.changed
 #  with_items: '{{ karaf_features_to_upgrade.stdout_lines }}'
+#  vars:
+#    ansible_ssh_pipelining: no
 #  tags:
 #    - install-features
 
@@ -153,6 +157,8 @@
   when: full_features_install_list_with_versions != ""
   environment:
     JAVA_HOME: "{{ karaf_java_home }}"
+  vars:
+    ansible_ssh_pipelining: no
   tags:
     - install-features
 
@@ -173,6 +179,8 @@
   when: (item.changed and item.item[0].karaf_on_config_change is defined and item.item[0].karaf_on_config_change == "feature")
   with_items: '{{ karaf_features_configs_changed.results }}'
   register: karaf_feature_restarted
+  vars:
+    ansible_ssh_pipelining: no
   tags:
     - install-features
 
@@ -204,6 +212,8 @@
   environment:
     JAVA_HOME: "{{ karaf_java_home }}"
   when: karaf_restart_on_feature_upgrade_needed.changed
+  vars:
+    ansible_ssh_pipelining: no
   tags:
     - install-features
 
@@ -218,5 +228,7 @@
   changed_when: false
   register: karaf_feature_wait_services
   failed_when: karaf_feature_wait_services.stdout is search("Error")
+  vars:
+    ansible_ssh_pipelining: no
   tags:
     - install-features
