@@ -36,7 +36,7 @@
   unarchive:
     src: 'tmp/jcp-{{ karaf_jcp_version }}.{{ karaf_jcp_archive_type }}'
     dest: '/tmp/{{ karaf_jcp_version }}'
-  when: jcp_install.changed
+  changed_when: False
   ignore_errors: True
   tags:
     - installJCP
@@ -65,7 +65,7 @@
     dest: '{{ karaf_home }}/lib/ext/{{ item | regex_replace("^.*/(.*)$", "\1") }}'
     remote_src: True
   with_items: '{{ karaf_jcp_files }}'
-  when: jcp_install.changed and item is defined
+  when: item is defined
   tags:
     - installJCP
 
