@@ -70,6 +70,9 @@ karaf_custom_jre_properties: []
 karaf_custom_jre_properties_by_version: []
 #      - { java_version: '8', prop: 'javax.xml.validation', value: 'version="1.0"' }
 
+karaf_replace_line_jre_properties: []
+#      - { prop: 'javax.annotation', value: 'version="3.0.0"' }
+
 karaf_wrapper_additional_jvm_options: []
 #  - "-Duser.encoding=AAAA"
 

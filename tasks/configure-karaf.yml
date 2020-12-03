@@ -156,6 +156,17 @@
   tags:
     - config
 
+- name: 'Replace any line in jre.properties'
+  replace:
+    dest: "{{ karaf_home }}/etc/jre.properties"
+    regexp: '(.*{{ item.prop }});.*([ \t\w\d:/@\.=,\-])'
+    replace: '\1;{{ item.value }}, '
+  with_items: "{{ karaf_replace_line_jre_properties }}"
+  when: item.value is defined and item.value != '_UNDEFINED_'
+  notify: Karaf restart
+  tags:
+    - config
+
 - name: 'Configure custom jre.properties by version'
   lineinfile:
     dest: "{{ karaf_home }}/etc/jre.properties"
