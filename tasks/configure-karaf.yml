@@ -156,6 +156,17 @@
   tags:
     - config
 
+- name: 'Configure jre.properties on java 9'
+  replace:
+    dest: "{{ karaf_home }}/etc/jre.properties"
+    regexp: '(#?[ \t]*jre-9)([ \t\w\d:/@\.=,\-]+)'
+    replace: ' {{ item.prop }};{{ item.value }}, '
+  with_items: "{{ karaf_custom_jre_properties }}"
+  when: item.value is defined and item.value != '_UNDEFINED_'
+  notify: Karaf restart
+  tags:
+    - config
+
 - name: 'Replace any line in jre.properties'
   replace:
     dest: "{{ karaf_home }}/etc/jre.properties"
