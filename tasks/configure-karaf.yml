@@ -145,6 +145,16 @@
   tags:
     - config
 
+- name: 'Configure jre.properties on java 9'
+  replace:
+    dest: "{{ karaf_home }}/etc/jre.properties"
+    regexp: '(#?[ \t]*jre-9)([ \t\w\d:/@\.=,\-]+)'
+    replace: '\1={{ karaf_jre_properties }}, '
+  when: karaf_jre_properties != ''
+  notify: Karaf restart
+  tags:
+    - config
+
 - name: 'Configure custom jre.properties'
   replace:
     dest: "{{ karaf_home }}/etc/jre.properties"
@@ -156,7 +166,7 @@
   tags:
     - config
 
-- name: 'Configure jre.properties on java 9'
+- name: 'Configure custom jre.properties on java 9'
   replace:
     dest: "{{ karaf_home }}/etc/jre.properties"
     regexp: '(#?[ \t]*jre-9)([ \t\w\d:/@\.=,\-]+)'
