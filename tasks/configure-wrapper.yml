@@ -22,7 +22,7 @@
   set_fact:
     karaf_wrapper_conf_last_num:
       '{%- set tmp = [] -%}
-       {%- for elem in karaf_wrapper_slurpfile.stdout_lines | map("match", "wrapper\.java\.additional\.(\d+).*$") | list -%}
+       {%- for elem in karaf_wrapper_slurpfile.stdout_lines | map("regex_search", "wrapper\.java\.additional\.(\d+).*$") | list -%}
          {%- if elem -%}
            {{ tmp.append(karaf_wrapper_slurpfile.stdout_lines[loop.index - 1].split(".")[3].split("=")[0] | int ) }}
          {%- endif -%}
