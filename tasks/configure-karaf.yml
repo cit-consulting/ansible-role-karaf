@@ -145,12 +145,44 @@
   tags:
     - config
 
+- name: 'Configure jre.properties on java 9'
+  replace:
+    dest: "{{ karaf_home }}/etc/jre.properties"
+    regexp: '(#?[ \t]*jre-9)([ \t\w\d:/@\.=,\-]+)'
+    replace: '\1={{ karaf_jre_properties }}, '
+  when: karaf_jre_properties != ''
+  notify: Karaf restart
+  tags:
+    - config
+
 - name: 'Configure custom jre.properties'
   replace:
     dest: "{{ karaf_home }}/etc/jre.properties"
     regexp: '(.*javax.xml.validation).*([ \t\w\d:/@\.=,\-])'
     replace: ' {{ item.prop }};{{ item.value }}, '
   with_items: "{{ karaf_custom_jre_properties }}"
+  when: item.value is defined and item.value != '_UNDEFINED_'
+  notify: Karaf restart
+  tags:
+    - config
+
+- name: 'Configure custom jre.properties on java 9'
+  replace:
+    dest: "{{ karaf_home }}/etc/jre.properties"
+    regexp: '(#?[ \t]*jre-9)([ \t\w\d:/@\.=,\-]+)'
+    replace: ' {{ item.prop }};{{ item.value }}, '
+  with_items: "{{ karaf_custom_jre_properties }}"
+  when: item.value is defined and item.value != '_UNDEFINED_'
+  notify: Karaf restart
+  tags:
+    - config
+
+- name: 'Replace any line in jre.properties'
+  replace:
+    dest: "{{ karaf_home }}/etc/jre.properties"
+    regexp: '(.*{{ item.prop }});.*([ \t\w\d:/@\.=,\-])'
+    replace: '\1;{{ item.value }}, '
+  with_items: "{{ karaf_replace_line_jre_properties }}"
   when: item.value is defined and item.value != '_UNDEFINED_'
   notify: Karaf restart
   tags:

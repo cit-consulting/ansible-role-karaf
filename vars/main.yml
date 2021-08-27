@@ -3,7 +3,7 @@
 karaf_logging_properties:
   - { regexp: "^#?log4j2.rootLogger.includeLocation.*$", line: "log4j2.rootLogger.includeLocation = false" }
   - { regexp: "^#?log4j2.appender.rolling.fileName.*$", line: "log4j2.appender.rolling.fileName = ${karaf.data}/log/{{ karaf_service_name }}.log" }
-  - { regexp: "^#?log4j2.appender.rolling.filePattern.*$", line: "log4j2.appender.rolling.filePattern = ${karaf.data}/log/karaf.log.%d{yyyy-MM-dd}.%i.gz" }
+  - { regexp: "^#?log4j2.appender.rolling.filePattern.*$", line: "log4j2.appender.rolling.filePattern = ${karaf.data}/log/karaf.log.%i.gz" }
   - { regexp: "^#?log4j2.appender.rolling.policies.size.size.*$", line: "log4j2.appender.rolling.policies.size.size = {{ karaf_log_file_size }}" }
 
 karaf_logging_rolling_strategy:
