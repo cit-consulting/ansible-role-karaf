@@ -25,7 +25,6 @@
   file:
     path: "/tmp/{{ karaf_jcp_version }}"
     state: directory
-  when: jcp_install.changed
   ignore_errors: True
   tags:
     - installJCP
